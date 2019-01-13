@@ -67,7 +67,7 @@ const NS = 'http://www.w3.org/2000/svg';
 
 function readExpressions(expressions, baseComponents) {
 	const result = new Map();
-	for (const name in expressions || {}) {
+	for (const name in expressions) {
 		if (!has(expressions, name)) {
 			continue;
 		}
@@ -101,21 +101,39 @@ function readExpressions(expressions, baseComponents) {
 }
 
 export default class Face {
+	static rotationForDirection(dx, dy, dz) {
+		const x = Math.atan2(dx, dz);
+		const y = Math.atan2(Math.cos(x) * dy, dz);
+		return {x, y};
+	}
+
 	constructor({
-		topography,
+		topography: {
+			ball = {},
+			liftAngle = 0,
+			components = {},
+			expressions = {},
+		},
 		radius = 100,
 		padding = 0,
 		zoom = 1,
 		document = null,
+		container = null,
 	}) {
 		if (document === null) {
-			document = window.document;
+			if (container === null) {
+				document = window.document;
+			} else {
+				document = container.ownerDocument;
+			}
 		}
 
 		this.dom = new DOMWrapper(document);
-		this.ballInfo = topography.ball;
+		this.ballInfo = ball;
+		this.liftAngle = liftAngle;
 		this.radius = radius;
 		this.expression = new Map();
+		this.currentRotation = {x: null, y: null};
 		this.mat = [];
 		this.dirty = true;
 
@@ -139,41 +157,71 @@ export default class Face {
 		this.root.add(this.ball);
 
 		this.components = new Map();
-		for (const part in topography.components || {}) {
-			if (!has(topography.components, part)) {
+		for (const part in components || {}) {
+			if (!has(components, part)) {
 				continue;
 			}
-			const info = topography.components[part];
+			const info = components[part];
 			const points = info.points.map(({x, y, z}) => ({x, y, z})); // make copy
 			const el = this.dom.el('path', NS).attr('fill-rule', 'evenodd');
 			this.components.set(part, {info, points, el});
 			this.root.add(el);
 		}
-		this.expressionInfo = readExpressions(topography.expressions, this.components);
+		this.expressionInfo = readExpressions(expressions, this.components);
 
 		this.setRotation(0, 0);
 		this._updateExpression();
+
+		if (container !== null) {
+			container.appendChild(this.element());
+		}
+
+		this.render();
 	}
 
 	element() {
 		return this.root.element;
 	}
 
+	getWindowPosition() {
+		const bounds = this.element().getBoundingClientRect();
+		return {
+			x: (bounds.left + bounds.right) / 2,
+			y: (bounds.top + bounds.bottom) / 2,
+		};
+	}
+
+	getPagePosition() {
+		const winPos = this.getWindowPosition();
+		return {
+			x: winPos.x + window.scrollX,
+			y: winPos.y + window.scrollY,
+		};
+	}
+
 	setExpressions(proportions) {
-		this.expression.clear();
+		let changed = false;
+		const toRemove = new Set(this.expression.keys());
 		for (const name in proportions) {
-			if (!has(proportions, name)) {
-				continue;
-			}
-			if (!this.expressionInfo.has(name)) {
+			if (!has(proportions, name) || !this.expressionInfo.has(name)) {
 				continue;
 			}
 			const value = proportions[name];
-			if (value > 0) {
+			if (value <= 0) {
+				continue;
+			}
+			toRemove.delete(name);
+			if (this.expression.get(name) !== value) {
 				this.expression.set(name, value);
+				changed = true;
 			}
 		}
-		this._updateExpression();
+		for (const name of toRemove.values()) {
+			this.expression.delete(name);
+		}
+		if (changed || toRemove.size > 0) {
+			this._updateExpression();
+		}
 	}
 
 	setExpression(name) {
@@ -181,8 +229,22 @@ export default class Face {
 	}
 
 	setRotation(x, y) {
+		if (typeof x === 'object') {
+			y = x.y;
+			x = x.x;
+		}
+		y -= this.liftAngle;
+		if (this.currentRotation.x === x && this.currentRotation.y === y) {
+			return;
+		}
+		this.currentRotation.x = x;
+		this.currentRotation.y = y;
 		this.mat = viewMat(x, y, this.radius);
 		this.dirty = true;
+	}
+
+	look(dx, dy, dz) {
+		this.setRotation(Face.rotationForDirection(dx, dy, dz));
 	}
 
 	_updateExpression() {

@@ -1,50 +1,91 @@
 import Face from './src/Face.js';
-import Clyde from './faces/Clyde.js';
 import TestPattern from './faces/TestPattern.js';
+import Clyde from './faces/Clyde.js';
+import Eye from './faces/Eye.js';
 
-function makeTest() {
-	const face = new Face({
-		topography: TestPattern,
-		radius: 40.0,
-		padding: 10.0,
-		zoom: 2.0,
-	});
-	document.body.appendChild(face.element());
-	return face;
-}
-
-const face1 = new Face({
-	topography: Clyde,
+const COMMON_CONFIG = {
 	radius: 40.0,
 	padding: 10.0,
 	zoom: 2.0,
-});
-face1.setRotation(Math.PI * 0.12, Math.PI * 0.03);
-face1.setExpressions({
-	'laugh': 1,
-//	'eyes-closed': 1,
-});
-face1.render();
-document.body.appendChild(face1.element());
+	container: document.body,
+};
 
-const face2 = makeTest();
-const face3 = makeTest();
-const face4 = makeTest();
-const face5 = makeTest();
-face5.setRotation(Math.PI * 0.12, Math.PI * 0.03);
-face5.render();
+const TEST_CONFIG = {
+	...COMMON_CONFIG,
+	topography: TestPattern,
+};
 
-function setTestPos(pos) {
-	face2.setRotation(pos, 0);
-	face3.setRotation(0, pos);
-	face4.setRotation(pos, pos * 1.07);
-	face2.render();
-	face3.render();
-	face4.render();
-}
+const CLYDE_CONFIG = {
+	...COMMON_CONFIG,
+	topography: Clyde,
+};
+
+const EYE_CONFIG = {
+	...COMMON_CONFIG,
+	topography: Eye,
+};
+
+const static1 = new Face(CLYDE_CONFIG);
+static1.setRotation(Math.PI * 0.12, Math.PI * 0.03);
+static1.setExpressions({'laugh': 1});
+static1.render();
+
+const static2 = new Face(TEST_CONFIG);
+static2.setRotation(Math.PI * 0.12, Math.PI * 0.03);
+static2.render();
+
+const static3 = new Face(EYE_CONFIG);
+static3.setRotation(Math.PI * 0.12, Math.PI * 0.03);
+static3.render();
+
+document.body.appendChild(document.createElement('br'));
+
+const follow1 = new Face(CLYDE_CONFIG);
+const follow2 = new Face(TEST_CONFIG);
+const follow3 = new Face(EYE_CONFIG);
+
+document.body.appendChild(document.createElement('br'));
+
+const test1 = new Face(TEST_CONFIG);
+const test2 = new Face(TEST_CONFIG);
+const test3 = new Face(TEST_CONFIG);
+
+window.addEventListener('mousemove', (e) => {
+	const pos = follow1.getPagePosition();
+	const dx = e.pageX - pos.x;
+	const dy = e.pageY - pos.y;
+	let expression;
+	const distance = Math.sqrt(dx * dx + dy * dy);
+	if (distance < 100) {
+		expression = 'laugh';
+	} else if (distance < 300) {
+		expression = 'smile';
+	} else if (distance < 600) {
+		expression = 'neutral';
+	} else {
+		expression = 'sad';
+	}
+	follow1.look(dx, dy, 200);
+	follow1.setExpression(expression);
+	follow1.render();
+
+	const pos2 = follow2.getPagePosition();
+	follow2.look(e.pageX - pos2.x, e.pageY - pos2.y, 200);
+	follow2.render();
+
+	const pos3 = follow3.getPagePosition();
+	follow3.look(e.pageX - pos3.x, e.pageY - pos3.y, 200);
+	follow3.render();
+});
 
 function step() {
-	setTestPos(Date.now() * 0.001);
+	const pos = Date.now() * 0.001;
+	test1.setRotation(pos, 0);
+	test2.setRotation(0, pos);
+	test3.setRotation(pos, pos * 1.07);
+	test1.render();
+	test2.render();
+	test3.render();
 	requestAnimationFrame(step);
 }
 

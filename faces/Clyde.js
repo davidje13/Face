@@ -8,6 +8,7 @@ export default {
 			'fill': '#FDE8AA',
 		},
 	},
+	liftAngle: Math.PI * 0.07,
 	components: {
 		'hair': {
 			style: {
