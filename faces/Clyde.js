@@ -1,4 +1,18 @@
-import {pts, symmetricX, backtraced} from './helpers.js';
+import {pts, symmetricX, reflectX, backtraced} from './helpers.js';
+
+const HIDE = {
+	style: {
+		'opacity': 0,
+	},
+};
+
+const EYE_STYLE = {
+	'stroke': '#000000',
+	'stroke-width': 5,
+	'opacity': 1,
+};
+
+const EYE = pts([{x: 0.3, y: -0.05}]);
 
 export default {
 	ball: {
@@ -14,7 +28,6 @@ export default {
 			style: {
 				'stroke': '#695320',
 				'stroke-width': 2,
-				'stroke-linejoin': 'round',
 				'fill': '#C69F45',
 			},
 			closed: true,
@@ -52,28 +65,17 @@ export default {
 			])),
 		},
 		'left-eye': {
-			style: {
-				'stroke': '#000000',
-				'stroke-width': 5,
-				'stroke-linecap': 'round',
-				'opacity': 1,
-			},
-			points: pts([{x: -0.3, y: -0.05}]),
+			style: EYE_STYLE,
+			points: reflectX(EYE),
 		},
 		'right-eye': {
-			style: {
-				'stroke': '#000000',
-				'stroke-width': 5,
-				'stroke-linecap': 'round',
-				'opacity': 1,
-			},
-			points: pts([{x: 0.3, y: -0.05}]),
+			style: EYE_STYLE,
+			points: EYE,
 		},
 		'nose': {
 			style: {
 				'stroke': '#000000',
 				'stroke-width': 5,
-				'stroke-linecap': 'round',
 			},
 			flat: false,
 			points: pts([
@@ -85,7 +87,6 @@ export default {
 			style: {
 				'stroke': '#000000',
 				'stroke-width': 2,
-				'stroke-linejoin': 'round',
 				'fill': '#FFFFFF',
 			},
 			closed: true,
@@ -100,16 +101,8 @@ export default {
 	expressions: {
 		'eyes-closed': {
 			components: {
-				'left-eye': {
-					style: {
-						'opacity': 0,
-					},
-				},
-				'right-eye': {
-					style: {
-						'opacity': 0,
-					},
-				},
+				'left-eye': HIDE,
+				'right-eye': HIDE,
 			},
 		},
 		'smile': {

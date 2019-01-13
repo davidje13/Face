@@ -13,7 +13,6 @@ export default {
 			style: {
 				'stroke': '#000080',
 				'stroke-width': 2,
-				'stroke-linejoin': 'round',
 				'fill': '#0000FF',
 				'opacity': 0.3,
 			},
@@ -29,7 +28,6 @@ export default {
 			style: {
 				'stroke': '#800000',
 				'stroke-width': 2,
-				'stroke-linejoin': 'round',
 				'fill': '#FF0000',
 				'opacity': 0.3,
 			},
@@ -45,7 +43,6 @@ export default {
 			style: {
 				'stroke': '#000000',
 				'stroke-width': 2,
-				'stroke-linejoin': 'round',
 				'fill': '#000000',
 				'opacity': 0.3,
 			},
@@ -61,7 +58,6 @@ export default {
 			style: {
 				'stroke': '#008000',
 				'stroke-width': 3,
-				'stroke-linejoin': 'round',
 				'fill': '#00FF00',
 				'opacity': 0.3,
 			},
@@ -77,7 +73,6 @@ export default {
 			style: {
 				'stroke': '#808000',
 				'stroke-width': 3,
-				'stroke-linejoin': 'round',
 				'fill': '#FFFF00',
 				'opacity': 0.3,
 			},

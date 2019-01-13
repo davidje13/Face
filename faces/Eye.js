@@ -22,7 +22,6 @@ export default {
 			style: {
 				'stroke': '#008000',
 				'stroke-width': 2,
-				'stroke-linejoin': 'round',
 				'fill': '#00CC66',
 			},
 			closed: true,

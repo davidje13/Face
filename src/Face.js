@@ -48,7 +48,11 @@ function blendedParts(blending, base, extractor) {
 
 function blendStyles(all) {
 	// TODO: per-component blending
-	return Object.assign({}, ...(all.map(({v}) => v)));
+	return Object.assign({
+		'fill': 'none',
+		'stroke-linejoin': 'round',
+		'stroke-linecap': 'round',
+	}, ...(all.map(({v}) => v)));
 }
 
 function blendPoints(target, all) {
@@ -117,6 +121,8 @@ export default class Face {
 		radius = 100,
 		padding = 0,
 		zoom = 1,
+		initialRotation = {x: 0, y: 0},
+		initialExpressions = {},
 		document = null,
 		container = null,
 	}) {
@@ -169,8 +175,8 @@ export default class Face {
 		}
 		this.expressionInfo = readExpressions(expressions, this.components);
 
-		this.setRotation(0, 0);
-		this._updateExpression();
+		this.setRotation(initialRotation);
+		this.setExpressions(initialExpressions, true);
 
 		if (container !== null) {
 			container.appendChild(this.element());
@@ -199,7 +205,7 @@ export default class Face {
 		};
 	}
 
-	setExpressions(proportions) {
+	setExpressions(proportions, _forceUpdate = false) {
 		let changed = false;
 		const toRemove = new Set(this.expression.keys());
 		for (const name in proportions) {
@@ -219,7 +225,7 @@ export default class Face {
 		for (const name of toRemove.values()) {
 			this.expression.delete(name);
 		}
-		if (changed || toRemove.size > 0) {
+		if (_forceUpdate || changed || toRemove.size > 0) {
 			this._updateExpression();
 		}
 	}
@@ -281,7 +287,7 @@ export default class Face {
 			} else {
 				d = renderOnBall(viewPoints, {
 					radius: this.radius,
-					filled: Boolean(info.style.fill),
+					filled: (info.style.fill !== 'none'),
 					closed: info.closed
 				});
 			}

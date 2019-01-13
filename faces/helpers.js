@@ -36,6 +36,16 @@ export function symmetricX(v) {
 	return all;
 }
 
+export function reflectX(v) {
+	const all = [];
+	for (let i = v.length; (i --) > 0;) {
+		const p = Object.assign({}, v[i]);
+		p.x = -p.x;
+		all.push(p);
+	}
+	return all;
+}
+
 export function backtraced(v) {
 	const all = v.slice();
 	for (let i = v.length - 1; (i --) > 0;) {
