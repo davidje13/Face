@@ -1,5 +1,5 @@
 import DOMWrapper from './DOMWrapper.js';
-import {renderOnBall, renderLines} from './svgBallRendering.js';
+import {renderOnBall, renderLines, fxShort} from './svgBallRendering.js';
 
 function has(o, key) {
 	return Object.prototype.hasOwnProperty.call(o, key);
@@ -84,16 +84,13 @@ function readExpressions(expressions, baseComponents) {
 
 			const base = baseComponents.get(part);
 			if (!base) {
-				throw (
-					'error: part "' + part + '" defined in "' + name + '"' +
-					' but not in base'
-				);
+				throw `error: part "${part}" defined in "${name}" but not in base`;
 			}
 			const points = info.components[part].points;
 			if (points && points.length !== base.points.length) {
 				throw (
-					'error: part "' + part + '" points mismatch in "' + name + '"' +
-					' (' + points.length + ' != ' + base.points.length + ')'
+					`error: part "${part}" points mismatch in "${name}"` +
+					` (${points.length} != ${base.points.length})`
 				);
 			}
 		}
@@ -124,20 +121,20 @@ export default class Face {
 
 		const size = radius + padding;
 
+		const fxSize = fxShort(size * zoom * 2);
+		const fxLeft = fxShort(-size);
+		const fxBounds = fxShort(size * 2);
 		this.root = this.dom.el('svg', NS).attrs({
 			'xmlns': NS,
 			'version': '1.1',
-			'width': size * zoom * 2,
-			'height': size * zoom * 2,
-			'viewBox': (
-				(-size) + ' ' + (-size) + ' ' +
-				(size * 2) + ' ' + (size * 2)
-			),
+			'width': fxSize,
+			'height': fxSize,
+			'viewBox': `${fxLeft} ${fxLeft} ${fxBounds} ${fxBounds}`,
 		});
 		this.ball = this.dom.el('circle', NS).attrs({
-			'cx': 0,
-			'cy': 0,
-			'r': radius,
+			'cx': '0',
+			'cy': '0',
+			'r': fxShort(radius),
 		});
 		this.root.add(this.ball);
 
@@ -148,7 +145,7 @@ export default class Face {
 			}
 			const info = topography.components[part];
 			const points = info.points.map(({x, y, z}) => ({x, y, z})); // make copy
-			const el = this.dom.el('path', NS).attrs({'fill-rule': 'evenodd'});
+			const el = this.dom.el('path', NS).attr('fill-rule', 'evenodd');
 			this.components.set(part, {info, points, el});
 			this.root.add(el);
 		}

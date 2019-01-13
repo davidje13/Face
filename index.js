@@ -43,6 +43,9 @@ function setTestPos(pos) {
 	face4.render();
 }
 
-setInterval(() => {
+function step() {
 	setTestPos(Date.now() * 0.001);
-}, 50);
+	requestAnimationFrame(step);
+}
+
+step();

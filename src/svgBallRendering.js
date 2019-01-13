@@ -8,8 +8,27 @@ function len3({x, y, z}) {
 	return Math.sqrt(x * x + y * y + z * z);
 }
 
+function deg(rad) {
+	return rad * 180 / Math.PI;
+}
+
 function pointVisible(pt) {
 	return pt.z > 0;
+}
+
+const TRAILING_STRIP = /^(-?[0-9]+)(?:\.|(\..+?))0*$/;
+
+export function fx(v) {
+	return v.toFixed(5);
+}
+
+export function fxShort(v) {
+	const fxv = fx(v);
+	const r = TRAILING_STRIP.exec(fxv);
+	if (!r) {
+		return fxv;
+	}
+	return r[1] + (r[2] || '');
 }
 
 function polylineDirection(pts) {
@@ -44,10 +63,10 @@ function greatCircleEdge(p1, p2, radius) {
 }
 
 function svgPt({x, y}) {
-	return x + ' ' + y;
+	return `${fx(x)} ${fx(y)}`;
 }
 
-function svgGreatCircle(p1, p2, radius) {
+function svgGreatCircle(p1, p2, radius, fxr) {
 	const cross = {
 		x: p1.y * p2.z - p1.z * p2.y,
 		y: p1.z * p2.x - p1.x * p2.z,
@@ -55,39 +74,25 @@ function svgGreatCircle(p1, p2, radius) {
 	};
 	const angle = Math.atan2(cross.y, cross.x);
 	const r2 = radius * cross.z / len3(cross);
-	return (
-		'A' + r2 + ' ' + radius +
-		' ' + (angle * 180 / Math.PI) +
-		((cross.z > 0) ? ' 0 1 ' : ' 0 0 ') +
-		svgPt(p2)
-	);
+	return `A${fx(r2)} ${fxr} ${fx(deg(angle))} 0 ${(cross.z > 0) ? '1' : '0'} ${svgPt(p2)}`;
 }
 
-function svgArcAlongCircumference(p1, p2, radius, clockwise) {
+function svgArcAlongCircumference(p1, p2, fxr, clockwise) {
 	const dir = (p1.x * p2.y - p1.y * p2.x) < 0;
-	return (
-		'A' + radius + ' ' + radius +
-		' 0 ' +
-		((dir ^ clockwise) ? '0 ' : '1 ') +
-		(clockwise ? '1 ' : '0 ')
-	);
+	const short = dir ^ clockwise;
+	return `A${fxr} ${fxr} 0 ${short ? '0' : '1'} ${clockwise ? '1' : '0'} `;
 }
 
-function svgCircle(radius) {
-	return (
-		'M0 ' + radius +
-		'A' + radius + ' ' + radius + ' 0 0 0 0 ' + (-radius) +
-		'A' + radius + ' ' + radius + ' 0 0 0 0 ' + radius +
-		'Z'
-	);
+function svgCircle(fxr) {
+	return `M0 ${fxr}A${fxr} ${fxr} 0 0 0 0 -${fxr}A${fxr} ${fxr} 0 0 0 0 ${fxr}Z`;
 }
 
-function pathBall(pts, radius) {
-	let result = svgPt(pts[0]);
+function pathBall(pts, radius, fxr) {
 	let previous = pts[0];
+	let result = svgPt(previous);
 	for (let i = 1; i < pts.length; ++ i) {
 		const pt = pts[i];
-		result += svgGreatCircle(previous, pt, radius);
+		result += svgGreatCircle(previous, pt, radius, fxr);
 		previous = pt;
 	}
 	return result;
@@ -134,7 +139,7 @@ function divideVisibleSections(pts, closed, radius) {
 	return all;
 }
 
-function joinSections(paths, radius, clockwise) {
+function joinSections(paths, fxr, clockwise) {
 	for (let i = 0; i < paths.length;) {
 		const path1 = paths[i];
 		const angle1 = path1.endAngle;
@@ -161,7 +166,7 @@ function joinSections(paths, radius, clockwise) {
 			break; // no start angles left; nothing more to join
 		}
 		const path2 = paths[choiceJ];
-		path1.d += svgArcAlongCircumference(path1.end, path2.start, radius, clockwise);
+		path1.d += svgArcAlongCircumference(path1.end, path2.start, fxr, clockwise);
 		if (choiceJ === i) {
 			path1.d += svgPt(path2.start);
 			path1.startAngle = null;
@@ -184,21 +189,22 @@ export function renderLines(pts, {closed = false} = {}) {
 
 export function renderOnBall(pts, {radius, filled = false, closed = false}) {
 	let result = '';
+	const fxr = fxShort(radius);
 
 	if (!pts.some(pointVisible)) {
 		// entire path is on back of sphere, or path is empty
 		if (filled && polylineDirection(pts) < 0) {
-			result += svgCircle(radius);
+			result += svgCircle(fxr);
 		}
 	} else if (pts.every(pointVisible)) {
 		// entire path is visible
 		const path = (closed && pts.length > 1) ? [...pts, pts[0]] : pts;
-		result += 'M' + pathBall(path, radius);
+		result += 'M' + pathBall(path, radius, fxr);
 		if (closed || pts.length === 1) {
 			result += 'Z';
 		}
 		if (filled && polylineDirection(pts) > 0) {
-			result += svgCircle(radius);
+			result += svgCircle(fxr);
 		}
 	} else {
 		// path is partially visible
@@ -207,7 +213,7 @@ export function renderOnBall(pts, {radius, filled = false, closed = false}) {
 				const start = path[0];
 				const end = path[path.length - 1];
 				return {
-					d: pathBall(path, radius),
+					d: pathBall(path, radius, fxr),
 					start,
 					end,
 					startAngle: startIsEdge ? Math.atan2(start.y, start.x) : null,
@@ -217,7 +223,7 @@ export function renderOnBall(pts, {radius, filled = false, closed = false}) {
 
 		if (filled) {
 			// join segments in clockwise order
-			joinSections(paths, radius, true);
+			joinSections(paths, fxr, true);
 		}
 
 		result += paths.map(({d}) => 'M' + d).join('');
