@@ -39,6 +39,10 @@ class WrappedElement {
 		return this;
 	}
 
+	unshift(...child) {
+		return this.addBefore(child, this.element.firstChild);
+	}
+
 	add(...child) {
 		return this.addBefore(child, null);
 	}

@@ -65,6 +65,12 @@ const MOUSTACHE_SHOCK = pts([
 	{x: 0.20, y: 0.530},
 ]);
 
+const HAT_STYLE = {
+	'stroke': '#000000',
+	'stroke-width': 3,
+	'fill': '#111111',
+};
+
 export default {
 	ball: {
 		style: {
@@ -77,11 +83,16 @@ export default {
 	hat: {
 		brim: {
 			y: -0.3,
-			outerRadius: 1.5,
+			outerRadius: 1.4,
+			style: HAT_STYLE,
+		},
+		sides: {
+			style: HAT_STYLE,
 		},
 		top: {
-			y: -1.3,
+			y: -1.2,
 			radius: 0.6,
+			style: HAT_STYLE,
 		},
 	},
 	components: {

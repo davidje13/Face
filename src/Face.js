@@ -1,5 +1,6 @@
 import DOMWrapper from './DOMWrapper.js';
 import {renderOnBall, renderLines, fxShort} from './svgBallRendering.js';
+import {buildHat, renderHat} from './svgHatRendering.js';
 
 function has(o, key) {
 	return Object.prototype.hasOwnProperty.call(o, key);
@@ -69,6 +70,23 @@ function blendPoints(target, all) {
 
 const NS = 'http://www.w3.org/2000/svg';
 
+function buildComponents(dom, root, components) {
+	const result = new Map();
+	for (const part in components) {
+		if (!has(components, part)) {
+			continue;
+		}
+		const info = components[part];
+		const points = info.points.map(({x, y, z}) => ({x, y, z})); // make copy
+		const elBack = dom.el('path', NS).attr('fill-rule', 'evenodd');
+		const elFront = dom.el('path', NS).attr('fill-rule', 'evenodd');
+		result.set(part, {info, points, elBack, elFront});
+		root.unshift(elBack);
+		root.add(elFront);
+	}
+	return result;
+}
+
 function readExpressions(expressions, baseComponents) {
 	const result = new Map();
 	for (const name in expressions) {
@@ -115,6 +133,7 @@ export default class Face {
 		topography: {
 			ball = {},
 			liftAngle = 0,
+			hat = null,
 			components = {},
 			expressions = {},
 		},
@@ -162,18 +181,43 @@ export default class Face {
 		});
 		this.root.add(this.ball);
 
-		this.components = new Map();
-		for (const part in components || {}) {
-			if (!has(components, part)) {
-				continue;
-			}
-			const info = components[part];
-			const points = info.points.map(({x, y, z}) => ({x, y, z})); // make copy
-			const el = this.dom.el('path', NS).attr('fill-rule', 'evenodd');
-			this.components.set(part, {info, points, el});
-			this.root.add(el);
-		}
+		this.components = buildComponents(this.dom, this.root, components);
 		this.expressionInfo = readExpressions(expressions, this.components);
+
+		if (hat) {
+			this.hatInfo = {
+				brim: Object.assign({innerRadius: 0, outerRadius: 0, style: {}}, hat.brim),
+				sides: Object.assign({style: {}}, hat.sides),
+				top: Object.assign({radius: 0, style: {}}, hat.top),
+			};
+			this.hatEl = buildHat(this.dom, this.root);
+			const brimY = this.hatInfo.brim.y;
+			const smallestBrim = Math.sqrt(1 - brimY * brimY);
+			if (this.hatInfo.brim.innerRadius <= smallestBrim) {
+				this.hatInfo.brim.innerRadius = smallestBrim;
+			}
+			const brimFill = Object.assign({}, this.hatInfo.brim.style, {'stroke-width': 0});
+			const brimLine = Object.assign({
+				'stroke-linejoin': 'round',
+				'stroke-linecap': 'round',
+			}, this.hatInfo.brim.style, {'fill': 'none'});
+			const sides = Object.assign({
+				'stroke-linejoin': 'round',
+				'stroke-linecap': 'round',
+			}, this.hatInfo.sides.style);
+			const top = Object.assign({
+				'stroke-linejoin': 'round',
+				'stroke-linecap': 'round',
+			}, this.hatInfo.top.style);
+			this.hatEl.elBrimBackFill.attrs(brimFill);
+			this.hatEl.elBrimBackOutline.attrs(brimLine);
+			this.hatEl.elBrimFrontFill.attrs(brimFill);
+			this.hatEl.elBrimFrontOutline.attrs(brimLine);
+			this.hatEl.elSides.attrs(sides);
+			this.hatEl.elTop.attrs(top);
+		} else {
+			this.hatInfo = null;
+		}
 
 		this.setRotation(initialRotation);
 		this.setExpressions(initialExpressions, true);
@@ -259,11 +303,20 @@ export default class Face {
 			this.ballInfo.style || {},
 			(name) => this.expressionInfo.get(name).ball.style
 		)));
-		for (const [part, {info, points, el}] of this.components.entries()) {
-			el.attrs(blendStyles(blendedParts(
+		for (const [part, {info, points, elFront, elBack}] of this.components.entries()) {
+			elFront.attrs(blendStyles(blendedParts(
 				this.expression,
 				info.style,
 				(name) => (this.expressionInfo.get(name).components[part] || {}).style
+			)));
+
+			elBack.attrs(blendStyles(blendedParts(
+				this.expression,
+				info.styleBack || info.style,
+				(name) => {
+					const base = this.expressionInfo.get(name).components[part] || {};
+					return base.styleBack || base.style;
+				}
 			)));
 
 			blendPoints(points, blendedParts(
@@ -279,7 +332,10 @@ export default class Face {
 		if (!this.dirty) {
 			return;
 		}
-		for (const [part, {info, points, el}] of this.components.entries()) {
+		if (this.hatInfo) {
+			renderHat(this.hatInfo, this.mat, this.radius, this.hatEl);
+		}
+		for (const [part, {info, points, elFront}] of this.components.entries()) {
 			const viewPoints = points.map((p) => applyMat(p, this.mat));
 			let d;
 			if (info.flat === false) {
@@ -291,7 +347,7 @@ export default class Face {
 					closed: info.closed
 				});
 			}
-			el.attr('d', d);
+			elFront.attr('d', d);
 		}
 		this.dirty = false;
 	}

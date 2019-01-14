@@ -62,7 +62,7 @@ function greatCircleEdge(p1, p2, radius) {
 	};
 }
 
-function svgPt({x, y}) {
+export function svgPt({x, y}) {
 	return `${fx(x)} ${fx(y)}`;
 }
 

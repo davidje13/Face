@@ -109,6 +109,13 @@ export default {
 		brim: {
 			y: -0.6,
 		},
+		sides: {
+			style: {
+				'stroke': '#560F06',
+				'stroke-width': 3,
+				'fill': '#EF3A22',
+			},
+		},
 		top: {
 			y: -1.9,
 			radius: 0,
