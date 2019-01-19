@@ -14,7 +14,7 @@
       location = "container:package.json">
    </FileRef>
    <FileRef
-      location = "container:index.mjs">
+      location = "container:index.js">
    </FileRef>
    <FileRef
       location = "container:index.html">

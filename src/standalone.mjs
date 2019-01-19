@@ -11,4 +11,8 @@ if (typeof module !== 'undefined' && module.exports) {
 	window.define(() => Face);
 } else {
 	window.Face = Face;
+
+	window.addEventListener('DOMContentLoaded', () => {
+		Face.convertAll();
+	}, {once: true});
 }

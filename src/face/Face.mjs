@@ -147,8 +147,8 @@ export default class Face {
 
 	constructor({
 		skin,
-		radius = 100,
-		padding = 0,
+		radius = 50,
+		padding = 5,
 		shift = {x: 0, y: 0},
 		zoom = 1,
 		rotation = {x: 0, y: 0},
@@ -156,6 +156,7 @@ export default class Face {
 		document = null,
 		container = null,
 		pointsAsLines = false,
+		render = true,
 	}) {
 		if (typeof skin === 'string') {
 			skin = Face.skins[skin];
@@ -249,7 +250,9 @@ export default class Face {
 			container.appendChild(this.element());
 		}
 
-		this.render();
+		if (render) {
+			this.render();
+		}
 	}
 
 	element() {
@@ -398,7 +401,101 @@ function render(options) {
 	return new Face(opts).getSVGCodeSynchronous();
 }
 
+function readNumber(v, def) {
+	return v ? Number(v) : def;
+}
+
+function parseTagOptions(element) {
+	const ds = element.dataset;
+	return {
+		skin: ds.faceSkin || 'Clyde',
+		radius: readNumber(ds.faceRadius),
+		padding: readNumber(ds.facePadding),
+		shift: {
+			x: readNumber(ds.faceShiftX, 0),
+			y: readNumber(ds.faceShiftY, 0),
+		},
+		zoom: readNumber(ds.faceZoom),
+		rotation: {
+			x: readNumber(ds.faceRotateX, 0) * Math.PI / 180,
+			y: readNumber(ds.faceRotateY, 0) * Math.PI / 180,
+		},
+		expressions: {[ds.faceExpression]: 1},
+	};
+}
+
+const lookup = new WeakMap();
+
+function convertOne(element, options = {}) {
+	if(element.tagName === 'svg') {
+		return null;
+	}
+
+	const tagOptions = parseTagOptions(element);
+
+	const face = new Face(Object.assign(tagOptions, options));
+	const newElement = face.element();
+	const attrs = element.attributes;
+	for(let i = 0; i < attrs.length; ++ i) {
+		newElement.setAttribute(
+			attrs[i].nodeName,
+			attrs[i].nodeValue
+		);
+	}
+	element.parentNode.replaceChild(newElement, element);
+	lookup.set(newElement, face);
+	return face;
+}
+
+function findConverted(elements) {
+	let els = elements;
+	if (typeof elements === 'string') {
+		els = [...window.document.getElementsByClassName(elements)];
+	} else if (Array.isArray(elements)) {
+		els = elements;
+	} else {
+		return lookup.get(element);
+	}
+	return els.map((el) => lookup.get(el)).filter((f) => f);
+}
+
+function convert(elements, options = {}) {
+	if (Array.isArray(elements)) {
+		return elements
+			.map((el) => convertOne(el, options))
+			.filter((face) => (face !== null));
+	} else {
+		return convertOne(elements, options);
+	}
+}
+
+function convertAll(root = null, className = 'face-js') {
+	let r = null;
+	let cls = null;
+	if(typeof root === 'string') {
+		r = null;
+		cls = root;
+	} else {
+		r = root;
+		cls = className;
+	}
+
+	let elements = null;
+	if(r && typeof r.length !== 'undefined') {
+		elements = r;
+	} else {
+		elements = (r || window.document).getElementsByClassName(cls);
+	}
+
+	// Convert elements
+	// (Convert from "live" collection to static to avoid infinite loops)
+	convert([...elements]);
+}
+
 Object.assign(Face, {
+	convert,
+	convertAll,
+	findConverted,
 	render,
 	skins: {},
 });
