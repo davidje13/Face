@@ -1,5 +1,22 @@
-export function pt({x, y, z = null, d = null, back = false}) {
-	/* eslint-disable no-param-reassign */
+function normalisePt(v) {
+	if (Array.isArray(v)) {
+		let [x, y, z = null, d = null] = v;
+		let back = false;
+		if (typeof z === 'boolean') {
+			back = z;
+			z = null;
+		} else if (typeof d === 'boolean') {
+			back = d;
+			d = null;
+		}
+		return {x, y, z, d, back};
+	} else {
+		return v;
+	}
+}
+
+export function pt(v) {
+	let {x, y, z = null, d = null, back = false} = normalisePt(v);
 	if (z === null) {
 		z = Math.sqrt(1 - x * x - y * y);
 		if (Number.isNaN(z)) {
@@ -18,7 +35,6 @@ export function pt({x, y, z = null, d = null, back = false}) {
 		z *= m;
 	}
 	return {x, y, z};
-	/* eslint-enable no-param-reassign */
 }
 
 export function pts(v) {

@@ -12,7 +12,81 @@ const EYE_STYLE = {
 	'opacity': 1,
 };
 
-const EYE = pts([{x: 0.3, y: -0.05}]);
+const EYE = pts([[0.3, -0.05]]);
+
+export const HAIR_RAW = [
+	[0.00, -0.09, true],
+	[0.20, -0.09, true],
+	[0.40, -0.09, true],
+	[0.60, -0.09, true],
+	[0.80, -0.09, true],
+	[0.90, -0.09, true],
+	[0.95, -0.09, true],
+	[0.97, -0.09, true],
+
+	[0.99, -0.09],
+	[0.97, -0.10],
+	[0.95, -0.12],
+	[0.93, -0.16],
+	[0.91, -0.18],
+	[0.88, -0.19],
+	[0.85, -0.18],
+	[0.82, -0.16],
+	[0.79, -0.14],
+	[0.76, -0.12],
+	[0.73, -0.11],
+	[0.70, -0.12],
+	[0.67, -0.14],
+	[0.62, -0.18],
+	[0.55, -0.23],
+	[0.48, -0.28],
+	[0.40, -0.32],
+	[0.33, -0.35],
+	[0.24, -0.38],
+	[0.14, -0.40],
+	[0.00, -0.41],
+];
+
+export const MOUTH_NORMAL = symmetricX(backtraced(pts([
+	[0.00, 0.640],
+	[0.10, 0.635],
+	[0.20, 0.620],
+	[0.30, 0.600],
+])));
+
+export const MOUTH_SMILE = symmetricX(backtraced(pts([
+	[0.00, 0.650],
+	[0.12, 0.630],
+	[0.24, 0.590],
+	[0.36, 0.520],
+])));
+
+export const MOUTH_SAD = symmetricX(backtraced(pts([
+	[0.00, 0.639],
+	[0.10, 0.641],
+	[0.20, 0.645],
+	[0.30, 0.650],
+])));
+
+export const MOUTH_LAUGH = symmetricX(pts([
+	[0.00, 0.640],
+	[0.10, 0.630],
+	[0.20, 0.610],
+	[0.30, 0.580],
+	[0.20, 0.680],
+	[0.10, 0.760],
+	[0.00, 0.780],
+]));
+
+export const MOUTH_SHOCK = symmetricX(pts([
+	[0.00, 0.625],
+	[0.10, 0.630],
+	[0.15, 0.640],
+	[0.20, 0.660],
+	[0.15, 0.700],
+	[0.10, 0.740],
+	[0.00, 0.750],
+]));
 
 export default {
 	ball: {
@@ -31,38 +105,7 @@ export default {
 				'fill': '#C69F45',
 			},
 			closed: true,
-			points: symmetricX(pts([
-				{x: 0.00, y: -0.09, back: true},
-				{x: 0.20, y: -0.09, back: true},
-				{x: 0.40, y: -0.09, back: true},
-				{x: 0.60, y: -0.09, back: true},
-				{x: 0.80, y: -0.09, back: true},
-				{x: 0.90, y: -0.09, back: true},
-				{x: 0.95, y: -0.09, back: true},
-				{x: 0.97, y: -0.09, back: true},
-
-				{x: 0.99, y: -0.09},
-				{x: 0.97, y: -0.10},
-				{x: 0.95, y: -0.12},
-				{x: 0.93, y: -0.16},
-				{x: 0.91, y: -0.18},
-				{x: 0.88, y: -0.19},
-				{x: 0.85, y: -0.18},
-				{x: 0.82, y: -0.16},
-				{x: 0.79, y: -0.14},
-				{x: 0.76, y: -0.12},
-				{x: 0.73, y: -0.11},
-				{x: 0.70, y: -0.12},
-				{x: 0.67, y: -0.14},
-				{x: 0.62, y: -0.18},
-				{x: 0.55, y: -0.23},
-				{x: 0.48, y: -0.28},
-				{x: 0.40, y: -0.32},
-				{x: 0.33, y: -0.35},
-				{x: 0.24, y: -0.38},
-				{x: 0.14, y: -0.40},
-				{x: 0.00, y: -0.41},
-			])),
+			points: symmetricX(pts(HAIR_RAW)),
 		},
 		'left-eye': {
 			style: EYE_STYLE,
@@ -79,8 +122,8 @@ export default {
 			},
 			flat: false,
 			points: pts([
-				{x: 0.0, y: 0.2, d: 1.0},
-				{x: 0.0, y: 0.2, d: 1.2},
+				[0.0, 0.2, null, 1.0],
+				[0.0, 0.2, null, 1.2],
 			]),
 		},
 		'mouth': {
@@ -90,12 +133,7 @@ export default {
 				'fill': '#FFFFFF',
 			},
 			closed: true,
-			points: symmetricX(backtraced(pts([
-				{x: 0.00, y: 0.640},
-				{x: 0.10, y: 0.635},
-				{x: 0.20, y: 0.620},
-				{x: 0.30, y: 0.600},
-			]))),
+			points: MOUTH_NORMAL,
 		},
 	},
 	mutualExpressions: [
@@ -111,54 +149,28 @@ export default {
 		'smile': {
 			components: {
 				'mouth': {
-					points: symmetricX(backtraced(pts([
-						{x: 0.00, y: 0.650},
-						{x: 0.12, y: 0.630},
-						{x: 0.24, y: 0.590},
-						{x: 0.36, y: 0.520},
-					]))),
+					points: MOUTH_SMILE,
 				},
 			},
 		},
 		'sad': {
 			components: {
 				'mouth': {
-					points: symmetricX(backtraced(pts([
-						{x: 0.00, y: 0.639},
-						{x: 0.10, y: 0.641},
-						{x: 0.20, y: 0.645},
-						{x: 0.30, y: 0.650},
-					]))),
+					points: MOUTH_SAD,
 				},
 			},
 		},
 		'laugh': {
 			components: {
 				'mouth': {
-					points: symmetricX(pts([
-						{x: 0.00, y: 0.640},
-						{x: 0.10, y: 0.630},
-						{x: 0.20, y: 0.610},
-						{x: 0.30, y: 0.580},
-						{x: 0.20, y: 0.680},
-						{x: 0.10, y: 0.760},
-						{x: 0.00, y: 0.780},
-					])),
+					points: MOUTH_LAUGH,
 				},
 			},
 		},
 		'shock': {
 			components: {
 				'mouth': {
-					points: symmetricX(pts([
-						{x: 0.00, y: 0.625},
-						{x: 0.10, y: 0.630},
-						{x: 0.15, y: 0.640},
-						{x: 0.20, y: 0.660},
-						{x: 0.15, y: 0.700},
-						{x: 0.10, y: 0.740},
-						{x: 0.00, y: 0.750},
-					])),
+					points: MOUTH_SHOCK,
 				},
 			},
 		},

@@ -12,8 +12,8 @@ geometries.
 ## Running Locally
 
 ```sh
-npm install -g http-server;
-http-server . -p 8080 -o;
+npm install
+npm start
 ```
 
 ## CLI

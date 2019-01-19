@@ -4,7 +4,7 @@ function circle(rad, steps) {
 	const result = [];
 	for (let i = 0; i < steps; ++ i) {
 		const angle = i * Math.PI * 2 / steps;
-		result.push({x: Math.sin(angle) * rad, y: -Math.cos(angle) * rad});
+		result.push([Math.sin(angle) * rad, -Math.cos(angle) * rad]);
 	}
 	return result;
 }

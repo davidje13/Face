@@ -11,6 +11,8 @@ module.exports = {
 		{
 			'files': ['**/skins/*'],
 			'rules': {
+				'array-bracket-spacing': ['off'],
+				'comma-spacing': ['off'],
 				'key-spacing': ['off'],
 				'sort-keys': ['off'],
 			},
