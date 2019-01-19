@@ -31,9 +31,10 @@ the commandline:
 
 ---
 
-<img src="screenshots/Clyde.png" width="100" />
-<img src="screenshots/Halloween.png" width="100" />
-<img src="screenshots/Bonfire.png" width="100" />
-<img src="screenshots/Christmas.png" width="100" />
-<img src="screenshots/Eye.png" width="100" />
-<img src="screenshots/TestPattern.png" width="100" />
+<img src="screenshots/Clyde.png" width="100"
+/><img src="screenshots/Halloween.png" width="100"
+/><img src="screenshots/Bonfire.png" width="100"
+/><img src="screenshots/Christmas.png" width="100"
+/><img src="screenshots/Eye.png" width="100"
+/><img src="screenshots/TestPattern.png" width="100"
+/>
