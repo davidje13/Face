@@ -1,4 +1,4 @@
-import {svgPt, fx} from './svgBallRendering.js';
+import {fx, svgPt} from './svgBallRendering.mjs';
 
 const NS = 'http://www.w3.org/2000/svg';
 
@@ -29,9 +29,9 @@ export function buildHat(dom, root) {
 	};
 }
 
-function ellipsePoints(centre, angle, r1, r2, angles) {
-	const ss = Math.sin(angle);
-	const cc = Math.cos(angle);
+function ellipsePoints(centre, ellipseAngle, r1, r2, angles) {
+	const ss = Math.sin(ellipseAngle);
+	const cc = Math.cos(ellipseAngle);
 
 	return angles.map((angle) => {
 		const flat = {x: Math.cos(angle) * r1, y: Math.sin(angle) * r2};
@@ -65,7 +65,7 @@ function svgEllipse(centre, angle, r1, r2) {
 }
 
 export function renderHat(
-	{brim, sides, top},
+	{brim, top},
 	mat,
 	radius,
 	{
@@ -78,15 +78,12 @@ export function renderHat(
 	}
 ) {
 	const dir = applyMat({x: 0, y: 1 / radius, z: 0}, mat);
-	const pB = applyMat({x: 0, y: brim.y, z: 0}, mat); // dir * brim.y * radius
-	const pT = applyMat({x: 0, y: top.y, z: 0}, mat); // dir * top.y * radius
+	const pB = applyMat({x: 0, y: brim.y, z: 0}, mat); // =dir * brim.y * radius
+	const pT = applyMat({x: 0, y: top.y, z: 0}, mat); // =dir * top.y * radius
 	const dirXY = Math.sqrt(1 - dir.z * dir.z);
 
 	const angle = Math.atan2(dir.y, dir.x) + Math.PI * 0.5;
-	const ss = Math.sin(angle);
-	const cc = Math.cos(angle);
 
-	const angleDeg = fx(angle * 180 / Math.PI);
 	const above = (dir.z < 0);
 
 	const r1a = top.radius * radius;

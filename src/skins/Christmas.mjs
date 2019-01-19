@@ -1,4 +1,4 @@
-import {pts, symmetricX, reflectX, backtraced} from './helpers.js';
+import {backtraced, pts, reflectX, symmetricX} from './helpers.mjs';
 
 const HIDE = {
 	style: {
@@ -144,7 +144,7 @@ export default {
 				'stroke-width': 3,
 			},
 			closed: true,
-			// arbitrary shape on back of head to force rendering outline above cheeks
+			// Arbitrary shape at back to force rendering outline above cheeks
 			points: pts([
 				{x: 0.0, y:-0.1, back: true},
 				{x: 0.1, y: 0.1, back: true},

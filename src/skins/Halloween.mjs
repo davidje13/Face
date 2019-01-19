@@ -1,10 +1,10 @@
-import {pts, symmetricX, reflectX, backtraced} from './helpers.js';
+import {backtraced, pts, reflectX, symmetricX} from './helpers.mjs';
 
-function roughY(pts) {
-	for (const pt of pts) {
+function roughY(v) {
+	for (const pt of v) {
 		pt.y += Math.random() * 0.02 - Math.random() * 0.01;
 	}
-	return pts;
+	return v;
 }
 
 const HIDE = {
@@ -20,6 +20,21 @@ const EYE_STYLE = {
 };
 
 const EYE = pts([{x: 0.3, y: -0.05}, {x: 0.3, y: -0.02}]);
+
+const EYE_SHADOW_STYLE = {
+	'stroke': '#9CBD51',
+	'stroke-width': 5,
+};
+
+const SCAR_BACK_STYLE = {
+	'stroke': '#D5CA90',
+	'stroke-width': 5,
+};
+
+const SCAR_STYLE = {
+	'stroke': '#C99B72',
+	'stroke-width': 2,
+};
 
 export default {
 	ball: {
@@ -72,20 +87,14 @@ export default {
 			]))),
 		},
 		'left-eye-shadow': {
-			style: {
-				'stroke': '#9CBD51',
-				'stroke-width': 5,
-			},
+			style: EYE_SHADOW_STYLE,
 			points: pts([
 				{x: -0.35, y: -0.14},
 				{x: -0.25, y: -0.12},
 			]),
 		},
 		'right-eye-shadow': {
-			style: {
-				'stroke': '#9CBD51',
-				'stroke-width': 5,
-			},
+			style: EYE_SHADOW_STYLE,
 			points: pts([
 				{x: 0.35, y: -0.14},
 				{x: 0.25, y: -0.12},
@@ -100,80 +109,56 @@ export default {
 			points: EYE,
 		},
 		'right-cheek-scar-shade': {
-			style: {
-				'stroke': '#D5CA90',
-				'stroke-width': 5,
-			},
+			style: SCAR_BACK_STYLE,
 			points: pts([
 				{x: 0.6, y: 0.5},
 				{x: 0.7, y: 0.2},
 			]),
 		},
 		'right-cheek-scar-shade-stitch-1': {
-			style: {
-				'stroke': '#D5CA90',
-				'stroke-width': 5,
-			},
+			style: SCAR_BACK_STYLE,
 			points: pts([
 				{x: 0.55, y: 0.4},
 				{x: 0.7, y: 0.45},
 			]),
 		},
 		'right-cheek-scar-shade-stitch-2': {
-			style: {
-				'stroke': '#D5CA90',
-				'stroke-width': 5,
-			},
+			style: SCAR_BACK_STYLE,
 			points: pts([
 				{x: 0.6, y: 0.3},
 				{x: 0.72, y: 0.35},
 			]),
 		},
 		'right-cheek-scar-shade-stitch-3': {
-			style: {
-				'stroke': '#D5CA90',
-				'stroke-width': 5,
-			},
+			style: SCAR_BACK_STYLE,
 			points: pts([
 				{x: 0.65, y: 0.2},
 				{x: 0.75, y: 0.25},
 			]),
 		},
 		'right-cheek-scar': {
-			style: {
-				'stroke': '#C99B72',
-				'stroke-width': 2,
-			},
+			style: SCAR_STYLE,
 			points: pts([
 				{x: 0.6, y: 0.5},
 				{x: 0.7, y: 0.2},
 			]),
 		},
 		'right-cheek-scar-stitch-1': {
-			style: {
-				'stroke': '#C99B72',
-				'stroke-width': 2,
-			},
+			style: SCAR_STYLE,
 			points: pts([
 				{x: 0.55, y: 0.4},
 				{x: 0.7, y: 0.45},
 			]),
 		},
 		'right-cheek-scar-stitch-2': {
-			style: {
-				'stroke': '#C99B72',
-				'stroke-width': 2,
-			},
+			style: SCAR_STYLE,
 			points: pts([
 				{x: 0.6, y: 0.3},
 				{x: 0.72, y: 0.35},
 			]),
 		},
 		'right-cheek-scar-stitch-3': {
-			style: {
-				'stroke': '#C99B72',
-				'stroke-width': 2,
-			},
+			style: SCAR_STYLE,
 			points: pts([
 				{x: 0.65, y: 0.2},
 				{x: 0.75, y: 0.25},
@@ -229,6 +214,9 @@ export default {
 			]))),
 		},
 	},
+	mutualExpressions: [
+		['normal', 'smile', 'sad', 'laugh', 'shock'],
+	],
 	expressions: {
 		'eyes-closed': {
 			components: {

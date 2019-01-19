@@ -1,8 +1,21 @@
 <!doctype html>
 <html lang="en">
 <head>
+<meta charset="utf-8">
+<meta http-equiv="content-security-policy" content="
+	base-uri 'self';
+	default-src 'none';
+	script-src 'self';
+	style-src 'self';
+	connect-src 'self';
+	font-src 'self';
+	img-src 'self';
+	form-action 'none';
+">
 <title>Face</title>
-<script src="index.js" type="module"></script>
+<link rel="icon" href="resources/favicon.png">
+<script src="lib/face.min.js" type="module"></script>
+<script src="index.mjs" type="module"></script>
 </head>
 <body>
 </body>

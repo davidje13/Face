@@ -1,9 +1,9 @@
 function make(value, document) {
-	if(typeof value === 'string') {
+	if (typeof value === 'string') {
 		return document.createTextNode(value);
-	} else if(typeof value === 'number') {
+	} else if (typeof value === 'number') {
 		return document.createTextNode(value.toString(10));
-	} else if(typeof value === 'object' && value.element) {
+	} else if (typeof value === 'object' && value.element) {
 		return value.element;
 	} else {
 		return value;
@@ -11,9 +11,9 @@ function make(value, document) {
 }
 
 function unwrap(node) {
-	if(node === null) {
+	if (node === null) {
 		return null;
-	} else if(node.element) {
+	} else if (node.element) {
 		return node.element;
 	} else {
 		return node;
@@ -26,10 +26,10 @@ class WrappedElement {
 	}
 
 	addBefore(child = null, before = null) {
-		if(child === null) {
+		if (child === null) {
 			return this;
-		} else if(Array.isArray(child)) {
-			for(const c of child) {
+		} else if (Array.isArray(child)) {
+			for (const c of child) {
 				this.addBefore(c, before);
 			}
 		} else {
@@ -48,7 +48,7 @@ class WrappedElement {
 	}
 
 	del(child = null) {
-		if(child !== null) {
+		if (child !== null) {
 			this.element.removeChild(unwrap(child));
 		}
 		return this;
@@ -60,8 +60,8 @@ class WrappedElement {
 	}
 
 	attrs(attrs) {
-		for(const k in attrs) {
-			if(Object.prototype.hasOwnProperty.call(attrs, k)) {
+		for (const k in attrs) {
+			if (Object.prototype.hasOwnProperty.call(attrs, k)) {
 				this.element.setAttribute(k, attrs[k]);
 			}
 		}
@@ -69,8 +69,8 @@ class WrappedElement {
 	}
 
 	styles(styles) {
-		for(const k in styles) {
-			if(Object.prototype.hasOwnProperty.call(styles, k)) {
+		for (const k in styles) {
+			if (Object.prototype.hasOwnProperty.call(styles, k)) {
 				this.element.style[k] = styles[k];
 			}
 		}
@@ -83,11 +83,11 @@ class WrappedElement {
 
 	addClass(cls) {
 		const classes = this.element.getAttribute('class');
-		if(!classes) {
+		if (!classes) {
 			return this.setClass(cls);
 		}
 		const list = classes.split(' ');
-		if(list.includes(cls)) {
+		if (list.includes(cls)) {
 			return this;
 		}
 		list.push(cls);
@@ -96,12 +96,12 @@ class WrappedElement {
 
 	delClass(cls) {
 		const classes = this.element.getAttribute('class');
-		if(!classes) {
+		if (!classes) {
 			return this;
 		}
 		const list = classes.split(' ');
 		const p = list.indexOf(cls);
-		if(p !== -1) {
+		if (p !== -1) {
 			list.splice(p, 1);
 			this.attr('class', list.join(' '));
 		}
@@ -114,8 +114,8 @@ class WrappedElement {
 	}
 
 	on(event, callback, options = {}) {
-		if(Array.isArray(event)) {
-			for(const e of event) {
+		if (Array.isArray(event)) {
+			for (const e of event) {
 				this.on(e, callback, options);
 			}
 		} else {
@@ -125,8 +125,8 @@ class WrappedElement {
 	}
 
 	off(event, callback, options = {}) {
-		if(Array.isArray(event)) {
-			for(const e of event) {
+		if (Array.isArray(event)) {
+			for (const e of event) {
 				this.off(e, callback, options);
 			}
 		} else {
@@ -156,7 +156,7 @@ class WrappedElement {
 	}
 
 	empty() {
-		while(this.element.childNodes.length > 0) {
+		while (this.element.childNodes.length > 0) {
 			this.element.removeChild(this.element.lastChild);
 		}
 		return this;
@@ -168,7 +168,7 @@ class WrappedElement {
 	}
 
 	detach() {
-		if(this.element.parentNode) {
+		if (this.element.parentNode) {
 			this.element.parentNode.removeChild(this.element);
 		}
 		return this;
@@ -177,7 +177,7 @@ class WrappedElement {
 
 export default class DOMWrapper {
 	constructor(document) {
-		if(!document) {
+		if (!document) {
 			throw new Error('Missing document!');
 		}
 		this.document = document;
@@ -187,7 +187,7 @@ export default class DOMWrapper {
 	}
 
 	wrap(element) {
-		if(element.element) {
+		if (element.element) {
 			return element;
 		} else {
 			return new WrappedElement(element);
@@ -196,7 +196,7 @@ export default class DOMWrapper {
 
 	el(tag, namespace = null) {
 		let element = null;
-		if(namespace === null) {
+		if (namespace === null) {
 			element = this.document.createElement(tag);
 		} else {
 			element = this.document.createElementNS(namespace, tag);

@@ -5,10 +5,16 @@
       location = "container:src">
    </FileRef>
    <FileRef
-      location = "container:faces">
+      location = "container:bin">
    </FileRef>
    <FileRef
-      location = "container:index.js">
+      location = "container:docs">
+   </FileRef>
+   <FileRef
+      location = "container:package.json">
+   </FileRef>
+   <FileRef
+      location = "container:index.mjs">
    </FileRef>
    <FileRef
       location = "container:index.html">
@@ -18,5 +24,11 @@
    </FileRef>
    <FileRef
       location = "container:LICENSE">
+   </FileRef>
+   <FileRef
+      location = "container:eslintrc.js">
+   </FileRef>
+   <FileRef
+      location = "container:.gitignore">
    </FileRef>
 </Workspace>

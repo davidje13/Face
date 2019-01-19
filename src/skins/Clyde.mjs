@@ -1,4 +1,4 @@
-import {pts, symmetricX, reflectX, backtraced} from './helpers.js';
+import {backtraced, pts, reflectX, symmetricX} from './helpers.mjs';
 
 const HIDE = {
 	style: {
@@ -98,6 +98,9 @@ export default {
 			]))),
 		},
 	},
+	mutualExpressions: [
+		['normal', 'smile', 'sad', 'laugh', 'shock'],
+	],
 	expressions: {
 		'eyes-closed': {
 			components: {

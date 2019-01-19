@@ -1,4 +1,4 @@
-import {pts, symmetricX, backtraced} from './helpers.js';
+import {pts} from './helpers.mjs';
 
 export default {
 	ball: {

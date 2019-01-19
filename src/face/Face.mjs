@@ -1,6 +1,7 @@
-import DOMWrapper from './DOMWrapper.js';
-import {renderOnBall, renderLines, fxShort} from './svgBallRendering.js';
-import {buildHat, renderHat} from './svgHatRendering.js';
+import {buildHat, renderHat} from './svgHatRendering.mjs';
+import {fxShort, renderLines, renderOnBall} from './svgBallRendering.mjs';
+import DOMWrapper from '../core/DOMWrapper.mjs';
+import {VirtualDocument} from '../core/documents/VirtualDocument.mjs';
 
 function has(o, key) {
 	return Object.prototype.hasOwnProperty.call(o, key);
@@ -11,11 +12,13 @@ function viewMat(x, y, r) {
 	const c1 = Math.cos(y);
 	const s2 = Math.sin(x);
 	const c2 = Math.cos(x);
+	/* eslint-disable no-mixed-spaces-and-tabs, no-multi-spaces */
 	return [
 		 c2 * r, -s1 * s2 * r, c1 * s2 * r,
 		  0 * r,  c1      * r, s1      * r,
 		-s2 * r, -s1 * c2 * r, c1 * c2 * r,
 	];
+	/* eslint-enable no-mixed-spaces-and-tabs, no-multi-spaces */
 }
 
 function applyMat(v, m) {
@@ -32,12 +35,12 @@ function blendedParts(blending, base, extractor) {
 	for (const [name, proportion] of blending.entries()) {
 		const v = extractor(name);
 		if (v !== undefined && v !== null) {
-			all.push({v, proportion});
+			all.push({proportion, v});
 			total += proportion;
 		}
 	}
 	if (total < 1) {
-		all.push({v: base, proportion: 1 - total});
+		all.push({proportion: 1 - total, v: base});
 	} else if (total > 1) {
 		const m = 1 / total;
 		for (const o of all) {
@@ -51,8 +54,8 @@ function blendStyles(all) {
 	// TODO: per-component blending
 	return Object.assign({
 		'fill': 'none',
-		'stroke-linejoin': 'round',
 		'stroke-linecap': 'round',
+		'stroke-linejoin': 'round',
 	}, ...(all.map(({v}) => v)));
 }
 
@@ -77,10 +80,10 @@ function buildComponents(dom, root, components) {
 			continue;
 		}
 		const info = components[part];
-		const points = info.points.map(({x, y, z}) => ({x, y, z})); // make copy
+		const points = info.points.map(({x, y, z}) => ({x, y, z})); // Make copy
 		const elBack = dom.el('path', NS).attr('fill-rule', 'evenodd');
 		const elFront = dom.el('path', NS).attr('fill-rule', 'evenodd');
-		result.set(part, {info, points, elBack, elFront});
+		result.set(part, {elBack, elFront, info, points});
 		root.unshift(elBack);
 		root.add(elFront);
 	}
@@ -106,12 +109,12 @@ function readExpressions(expressions, baseComponents) {
 
 			const base = baseComponents.get(part);
 			if (!base) {
-				throw `error: part "${part}" defined in "${name}" but not in base`;
+				throw new Error(`part "${part}" in "${name}" but not in base`);
 			}
-			const points = info.components[part].points;
+			const {points} = info.components[part];
 			if (points && points.length !== base.points.length) {
-				throw (
-					`error: part "${part}" points mismatch in "${name}"` +
+				throw new Error(
+					`part "${part}" points mismatch in "${name}"` +
 					` (${points.length} != ${base.points.length})`
 				);
 			}
@@ -122,6 +125,19 @@ function readExpressions(expressions, baseComponents) {
 	return result;
 }
 
+function pickDocument(document = null, container = null) {
+	if (document !== null) {
+		return document;
+	}
+	if (container !== null) {
+		return container.ownerDocument;
+	}
+	if (typeof window === 'undefined') {
+		return new VirtualDocument();
+	}
+	return window.document;
+}
+
 export default class Face {
 	static rotationForDirection(dx, dy, dz) {
 		const x = Math.atan2(dx, dz);
@@ -130,33 +146,39 @@ export default class Face {
 	}
 
 	constructor({
-		topography: {
+		skin,
+		radius = 100,
+		padding = 0,
+		shift = {x: 0, y: 0},
+		zoom = 1,
+		rotation = {x: 0, y: 0},
+		expressions: initialExpressions = {},
+		document = null,
+		container = null,
+		pointsAsLines = false,
+	}) {
+		if (typeof skin === 'string') {
+			skin = Face.skins[skin];
+			if (!skin) {
+				throw new Error('Unknown skin: ' + skin);
+			}
+		}
+		if (typeof skin !== 'object') {
+			throw new Error('Invalid skin');
+		}
+		const {
 			ball = {},
 			liftAngle = 0,
 			hat = null,
 			components = {},
 			expressions = {},
-		},
-		radius = 100,
-		padding = 0,
-		zoom = 1,
-		initialRotation = {x: 0, y: 0},
-		initialExpressions = {},
-		document = null,
-		container = null,
-	}) {
-		if (document === null) {
-			if (container === null) {
-				document = window.document;
-			} else {
-				document = container.ownerDocument;
-			}
-		}
+		} = skin;
 
-		this.dom = new DOMWrapper(document);
+		this.dom = new DOMWrapper(pickDocument(document, container));
 		this.ballInfo = ball;
 		this.liftAngle = liftAngle;
 		this.radius = radius;
+		this.pointsAsLines = pointsAsLines;
 		this.expression = new Map();
 		this.currentRotation = {x: null, y: null};
 		this.mat = [];
@@ -165,14 +187,15 @@ export default class Face {
 		const size = radius + padding;
 
 		const fxSize = fxShort(size * zoom * 2);
-		const fxLeft = fxShort(-size);
+		const fxLeft = fxShort(-shift.x - size);
+		const fxTop = fxShort(-shift.y - size);
 		const fxBounds = fxShort(size * 2);
 		this.root = this.dom.el('svg', NS).attrs({
-			'xmlns': NS,
-			'version': '1.1',
-			'width': fxSize,
 			'height': fxSize,
-			'viewBox': `${fxLeft} ${fxLeft} ${fxBounds} ${fxBounds}`,
+			'version': '1.1',
+			'viewBox': `${fxLeft} ${fxTop} ${fxBounds} ${fxBounds}`,
+			'width': fxSize,
+			'xmlns': NS,
 		});
 		this.ball = this.dom.el('circle', NS).attrs({
 			'cx': '0',
@@ -198,16 +221,16 @@ export default class Face {
 			}
 			const brimFill = Object.assign({}, this.hatInfo.brim.style, {'stroke-width': 0});
 			const brimLine = Object.assign({
-				'stroke-linejoin': 'round',
 				'stroke-linecap': 'round',
+				'stroke-linejoin': 'round',
 			}, this.hatInfo.brim.style, {'fill': 'none'});
 			const sides = Object.assign({
-				'stroke-linejoin': 'round',
 				'stroke-linecap': 'round',
+				'stroke-linejoin': 'round',
 			}, this.hatInfo.sides.style);
 			const top = Object.assign({
-				'stroke-linejoin': 'round',
 				'stroke-linecap': 'round',
+				'stroke-linejoin': 'round',
 			}, this.hatInfo.top.style);
 			this.hatEl.elBrimBackFill.attrs(brimFill);
 			this.hatEl.elBrimBackOutline.attrs(brimLine);
@@ -219,7 +242,7 @@ export default class Face {
 			this.hatInfo = null;
 		}
 
-		this.setRotation(initialRotation);
+		this.setRotation(rotation);
 		this.setExpressions(initialExpressions, true);
 
 		if (container !== null) {
@@ -330,25 +353,52 @@ export default class Face {
 
 	render() {
 		if (!this.dirty) {
-			return;
+			return false;
 		}
 		if (this.hatInfo) {
 			renderHat(this.hatInfo, this.mat, this.radius, this.hatEl);
 		}
-		for (const [part, {info, points, elFront}] of this.components.entries()) {
+		for (const [, {info, points, elFront}] of this.components.entries()) {
 			const viewPoints = points.map((p) => applyMat(p, this.mat));
 			let d;
 			if (info.flat === false) {
 				d = renderLines(viewPoints, {closed: info.closed});
 			} else {
 				d = renderOnBall(viewPoints, {
-					radius: this.radius,
+					closed: info.closed,
 					filled: (info.style.fill !== 'none'),
-					closed: info.closed
+					pointsAsLines: this.pointsAsLines,
+					radius: this.radius,
 				});
 			}
 			elFront.attr('d', d);
 		}
 		this.dirty = false;
+		return true;
+	}
+
+	getSVGCodeSynchronous() {
+		this.render();
+		return (
+			'<?xml version="1.0" encoding="UTF-8" ?>' +
+			this.element().outerHTML
+		);
+	}
+
+	getSVGCode() {
+		return Promise.resolve(this.getSVGCodeSynchronous());
 	}
 }
+
+function render(options) {
+	const opts = Object.assign({}, options, {
+		container: null,
+		document: new VirtualDocument(),
+	});
+	return new Face(opts).getSVGCodeSynchronous();
+}
+
+Object.assign(Face, {
+	render,
+	skins: {},
+});

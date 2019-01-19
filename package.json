@@ -1,0 +1,48 @@
+{
+  "name": "face",
+  "version": "1.0.0",
+  "description": "Generates SVG Faces",
+  "homepage": "https://github.com/davidje13/Face",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/davidje13/Face.git"
+  },
+  "bugs": {
+    "url": "https://github.com/davidje13/Face/issues"
+  },
+  "license": "LGPL-3.0",
+  "files": [
+    "bin",
+    "lib/face.js",
+    "src"
+  ],
+  "main": "lib/face",
+  "module": "src/standalone",
+  "bin": {
+    "face-svg": "./bin/face-svg.js"
+  },
+  "eslintIgnore": [
+    "lib"
+  ],
+  "scripts": {
+    "lint": "eslint . --config eslintrc.js --ext .js --ext .mjs",
+    "generate-screenshots": "bin/generate-screenshots.js",
+    "minify": "rollup --config src/rollup.config.js && uglifyjs --compress --mangle --warn --output lib/face.min.js -- lib/face.js",
+    "prepublishOnly": "npm run minify && npm run generate-screenshots",
+    "start": "http-server . -p 8080 -o",
+    "test": "npm run lint && echo 'PASSED :)'"
+  },
+  "devDependencies": {
+    "buffer-to-stream": "^1.0.0",
+    "eslint": "^5.12.0",
+    "http-server": "^0.11.1",
+    "pngcrush": "^2.0.0",
+    "rollup": "^1.1.0",
+    "source-map-support": "^0.5.10",
+    "svg2png": "^4.1.1",
+    "uglify-es": "^3.3.9"
+  },
+  "dependencies": {
+    "argparse": "^1.0.10"
+  }
+}

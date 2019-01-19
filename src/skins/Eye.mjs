@@ -1,12 +1,12 @@
-import {pts} from './helpers.js';
+import {pts} from './helpers.mjs';
 
 function circle(rad, steps) {
-	const pts = [];
+	const result = [];
 	for (let i = 0; i < steps; ++ i) {
 		const angle = i * Math.PI * 2 / steps;
-		pts.push({x: Math.sin(angle) * rad, y: -Math.cos(angle) * rad});
+		result.push({x: Math.sin(angle) * rad, y: -Math.cos(angle) * rad});
 	}
-	return pts;
+	return result;
 }
 
 export default {

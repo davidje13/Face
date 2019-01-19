@@ -1,4 +1,5 @@
 export function pt({x, y, z = null, d = null, back = false}) {
+	/* eslint-disable no-param-reassign */
 	if (z === null) {
 		z = Math.sqrt(1 - x * x - y * y);
 		if (Number.isNaN(z)) {
@@ -17,6 +18,7 @@ export function pt({x, y, z = null, d = null, back = false}) {
 		z *= m;
 	}
 	return {x, y, z};
+	/* eslint-enable no-param-reassign */
 }
 
 export function pts(v) {
