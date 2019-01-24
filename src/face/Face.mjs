@@ -220,7 +220,9 @@ export default class Face {
 			if (this.hatInfo.brim.innerRadius <= smallestBrim) {
 				this.hatInfo.brim.innerRadius = smallestBrim;
 			}
-			const brimFill = Object.assign({}, this.hatInfo.brim.style, {'stroke-width': 0});
+			const brimFill = Object.assign({
+				'fill-rule': 'evenodd',
+			}, this.hatInfo.brim.style, {'stroke-width': 0});
 			const brimLine = Object.assign({
 				'stroke-linecap': 'round',
 				'stroke-linejoin': 'round',
