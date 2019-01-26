@@ -12,6 +12,8 @@ function pointVisible(pt) {
 	return pt.z > 0;
 }
 
+const MIN_ARC_DIST = 5;
+
 const TRAILING_STRIP = /^(-?[0-9]+)(?:\.|(\..+?))0*$/;
 
 export function fx(v) {
@@ -65,6 +67,12 @@ export function svgPt({x, y}) {
 function svgGreatCircle(p1, p2, radius, fxr) {
 	if (p1.x === p2.x && p1.y === p2.y && p1.z === p2.z) {
 		return '';
+	}
+	const dx = p2.x - p1.x;
+	const dy = p2.y - p1.y;
+	const dz = p2.z - p1.z;
+	if (dx * dx + dy * dy + dz * dz < MIN_ARC_DIST * MIN_ARC_DIST) {
+		return 'L' + svgPt(p2);
 	}
 	const cross = {
 		x: p1.y * p2.z - p1.z * p2.y,

@@ -73,13 +73,16 @@ function blendPoints(target, all) {
 
 const NS = 'http://www.w3.org/2000/svg';
 
-function buildComponents(dom, root, components) {
+function buildComponents(dom, root, components, minBackStroke) {
 	const result = new Map();
 	for (const part in components) {
 		if (!has(components, part)) {
 			continue;
 		}
-		const info = components[part];
+		const info = Object.assign({}, components[part]);
+		if (info.backRendering === undefined) {
+			info.backRendering = Number(info.style['stroke-width']) > minBackStroke;
+		}
 		const points = info.points.map(({x, y, z}) => ({x, y, z})); // Make copy
 		const elBack = dom.el('path', NS).attr('fill-rule', 'evenodd');
 		const elFront = dom.el('path', NS).attr('fill-rule', 'evenodd');
@@ -205,7 +208,8 @@ export default class Face {
 		});
 		this.root.add(this.ball);
 
-		this.components = buildComponents(this.dom, this.root, components);
+		const minBackStroke = Number(ball.style['stroke-width']);
+		this.components = buildComponents(this.dom, this.root, components, minBackStroke);
 		this.expressionInfo = readExpressions(expressions, this.components);
 
 		if (hat) {
@@ -338,9 +342,14 @@ export default class Face {
 				(name) => (this.expressionInfo.get(name).components[part] || {}).style
 			)));
 
+			let backStyle = info.styleBack;
+			if (!backStyle) {
+				backStyle = Object.assign({}, info.style, {'fill': 'none'});
+			}
+
 			elBack.attrs(blendStyles(blendedParts(
 				this.expression,
-				info.styleBack || info.style,
+				backStyle,
 				(name) => {
 					const base = this.expressionInfo.get(name).components[part] || {};
 					return base.styleBack || base.style;
@@ -363,20 +372,32 @@ export default class Face {
 		if (this.hatInfo) {
 			renderHat(this.hatInfo, this.mat, this.radius, this.hatEl);
 		}
-		for (const [, {info, points, elFront}] of this.components.entries()) {
+		for (const [, {info, points, elFront, elBack}] of this.components.entries()) {
 			const viewPoints = points.map((p) => applyMat(p, this.mat));
-			let d;
+			let dFront = '';
+			let dBack = '';
 			if (info.flat === false) {
-				d = renderLines(viewPoints, {closed: info.closed});
+				dFront = renderLines(viewPoints, {closed: info.closed});
 			} else {
-				d = renderOnBall(viewPoints, {
+				dFront = renderOnBall(viewPoints, {
 					closed: info.closed,
 					filled: (info.style.fill !== 'none'),
 					pointsAsLines: this.pointsAsLines,
 					radius: this.radius,
 				});
+				if (info.backRendering) {
+					const backPoints = viewPoints.map((p) => ({x: p.x, y: p.y, z: -p.z}));
+					backPoints.reverse();
+					dBack = renderOnBall(backPoints, {
+						closed: info.closed,
+						filled: ((info.styleBack || {fill: 'none'}).fill !== 'none'),
+						pointsAsLines: this.pointsAsLines,
+						radius: this.radius,
+					});
+				}
 			}
-			elFront.attr('d', d);
+			elFront.attr('d', dFront);
+			elBack.attr('d', dBack);
 		}
 		this.dirty = false;
 		return true;
