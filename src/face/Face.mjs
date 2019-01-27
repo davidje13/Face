@@ -81,7 +81,11 @@ function buildComponents(dom, root, components, minBackStroke) {
 		}
 		const info = Object.assign({}, components[part]);
 		if (info.backRendering === undefined) {
-			info.backRendering = Number(info.style['stroke-width']) > minBackStroke;
+			if (info.styleBack) {
+				info.backRendering = true;
+			} else {
+				info.backRendering = Number(info.style['stroke-width']) > minBackStroke;
+			}
 		}
 		const points = info.points.map(({x, y, z}) => ({x, y, z})); // Make copy
 		const elBack = dom.el('path', NS).attr('fill-rule', 'evenodd');
@@ -450,7 +454,7 @@ function parseTagOptions(element) {
 const lookup = new WeakMap();
 
 function convertOne(element, options = {}) {
-	if(element.tagName === 'svg') {
+	if (element.tagName === 'svg') {
 		return null;
 	}
 
@@ -459,7 +463,7 @@ function convertOne(element, options = {}) {
 	const face = new Face(Object.assign(tagOptions, options));
 	const newElement = face.element();
 	const attrs = element.attributes;
-	for(let i = 0; i < attrs.length; ++ i) {
+	for (let i = 0; i < attrs.length; ++ i) {
 		newElement.setAttribute(
 			attrs[i].nodeName,
 			attrs[i].nodeValue
@@ -477,7 +481,7 @@ function findConverted(elements) {
 	} else if (Array.isArray(elements)) {
 		els = elements;
 	} else {
-		return lookup.get(element);
+		return lookup.get(elements);
 	}
 	return els.map((el) => lookup.get(el)).filter((f) => f);
 }
@@ -495,7 +499,7 @@ function convert(elements, options = {}) {
 function convertAll(root = null, className = 'face-js') {
 	let r = null;
 	let cls = null;
-	if(typeof root === 'string') {
+	if (typeof root === 'string') {
 		r = null;
 		cls = root;
 	} else {
@@ -504,7 +508,7 @@ function convertAll(root = null, className = 'face-js') {
 	}
 
 	let elements = null;
-	if(r && typeof r.length !== 'undefined') {
+	if (r && typeof r.length !== 'undefined') {
 		elements = r;
 	} else {
 		elements = (r || window.document).getElementsByClassName(cls);

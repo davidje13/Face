@@ -1,4 +1,4 @@
-function normalisePt(v) {
+export function normalisePt(v) {
 	if (Array.isArray(v)) {
 		let [x, y, z = null, d = null] = v;
 		let back = false;
@@ -41,10 +41,18 @@ export function pts(v) {
 	return v.map(pt);
 }
 
+export function clonePt(v) {
+	return Array.isArray(v) ? normalisePt(v) : Object.assign({}, v);
+}
+
+export function clonePts(v) {
+	return v.map(clonePt);
+}
+
 export function symmetricX(v) {
 	const all = v.slice();
 	for (let i = v.length; (i --) > 0;) {
-		const p = Object.assign({}, v[i]);
+		const p = clonePt(v[i]);
 		p.x = -p.x;
 		if ((i === 0 || i === v.length - 1) && p.x === 0) {
 			continue;
@@ -57,7 +65,7 @@ export function symmetricX(v) {
 export function reflectX(v) {
 	const all = [];
 	for (let i = v.length; (i --) > 0;) {
-		const p = Object.assign({}, v[i]);
+		const p = clonePt(v[i]);
 		p.x = -p.x;
 		all.push(p);
 	}

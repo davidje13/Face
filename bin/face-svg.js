@@ -6,7 +6,7 @@ const Face = require('../lib/face');
 const parser = new ArgumentParser({
 	addHelp: true,
 	description: 'Render an SVG face',
-	epilog: 'Example:\nface-svg.js --padding=10 --skin=Halloween',
+	epilog: 'Example:\nface-svg.js --padding=10 --skin=Amy',
 	version: '1.0.0',
 });
 

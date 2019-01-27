@@ -79,6 +79,10 @@ for (const skin in Face.skins) {
 		continue;
 	}
 
+	if (typeof Face.skins[skin] !== 'object') {
+		continue;
+	}
+
 	samples.push({
 		file: `screenshots/${skin}.png`,
 		options: {

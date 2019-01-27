@@ -26,13 +26,17 @@ the commandline:
 ./bin/face-svg.js --help
 
 # Example call:
-./bin/face-svg.js --padding=10 --skin=Halloween > myFile.svg
+./bin/face-svg.js --padding=10 --skin=Amy > myFile.svg
 ````
 
 ---
 
-<img src="screenshots/Clyde.png" width="100"
-/><img src="screenshots/Halloween.png" width="100"
+<img src="screenshots/Amy.png" width="100"
+/><img src="screenshots/Bert.png" width="100"
+/><img src="screenshots/Clyde.png" width="100"
+/><img src="screenshots/Dean.png" width="100"
+/><img src="screenshots/HalloweenAmy.png" width="100"
+/><img src="screenshots/HalloweenClyde.png" width="100"
 /><img src="screenshots/Bonfire.png" width="100"
 /><img src="screenshots/Christmas.png" width="100"
 /><img src="screenshots/Eye.png" width="100"

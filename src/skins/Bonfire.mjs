@@ -4,7 +4,7 @@ import {
 	MOUTH_SAD,
 	MOUTH_SHOCK,
 	MOUTH_SMILE,
-} from './Clyde.mjs';
+} from './Doe.mjs';
 import {pts, reflectX, symmetricX} from './helpers.mjs';
 
 const HIDE = {
