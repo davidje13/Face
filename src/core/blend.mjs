@@ -1,5 +1,7 @@
 /* eslint-disable sort-keys */
 
+const TRANSPARENT = {r: 0, g: 0, b: 0, a: 0};
+
 function readColPart(full, partSize, index, def = 0) {
 	if (full.length < 1 + (index + 1) * partSize) {
 		return def;
@@ -14,6 +16,9 @@ function readColPart(full, partSize, index, def = 0) {
 }
 
 function readCol(css) {
+	if (css === 'none') {
+		return TRANSPARENT;
+	}
 	if (css.charAt(0) === '#') {
 		const partSize = (css.length > 5) ? 2 : 1;
 		return {
@@ -36,7 +41,7 @@ function readCol(css) {
 			a: raw.length >= 4 ? raw[3] : 255,
 		};
 	}
-	return {r: 0, g: 0, b: 0, a: 0};
+	return TRANSPARENT;
 }
 
 function writeCol({r, g, b, a}) {

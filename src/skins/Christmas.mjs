@@ -139,16 +139,19 @@ export default {
 		},
 		'left-cheek': {
 			style: CHEEK_STYLE,
+			backRendering: false,
 			points: reflectX(CHEEK),
 		},
 		'right-cheek': {
 			style: CHEEK_STYLE,
+			backRendering: false,
 			points: CHEEK,
 		},
 		'forced-outline': {
 			style: {
 				'stroke': '#000000',
 				'stroke-width': 3,
+				'fill': 'rgba(0,0,0,0)', // Force outlining as if filled
 			},
 			closed: true,
 			// Arbitrary shape at back to force rendering outline above cheeks

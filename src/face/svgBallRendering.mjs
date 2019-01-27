@@ -193,8 +193,50 @@ function joinSections(paths, fxr, clockwise) {
 	}
 }
 
-export function renderLines(pts, {closed = false} = {}) {
+export function renderLines(pts, {closed = false, pointsAsLines = false} = {}) {
+	if (!pts.length) {
+		return '';
+	}
+	if (pts.length === 1) {
+		if (pointsAsLines) {
+			return `M${svgPt(pts[0])}l0 0.0001`;
+		}
+		return `M${svgPt(pts[0])}Z`;
+	}
 	return 'M' + pts.map(svgPt).join('L') + (closed ? 'Z' : '');
+}
+
+export function renderLinesHemi(pts, opts = {}) {
+	if (!pts.some(pointVisible)) {
+		return '';
+	} else if (pts.every(pointVisible)) {
+		return renderLines(pts, opts);
+	} else {
+		let result = 'M';
+		const path = [pts[0], ...pts];
+		if (opts.closed) {
+			path.push(pts[0]);
+		}
+		for (let i = 1; i < path.length; ++ i) {
+			const p0 = path[i - 1];
+			const p1 = path[i];
+			if (p0.z > 0 && p1.z > 0) {
+				result += svgPt(p1) + 'L';
+			} else if (p0.z > 0 || p1.z > 0) {
+				const p = p1.z / (p1.z - p0.z);
+				const cross = {
+					x: p0.x * p + p1.x * (1 - p),
+					y: p0.y * p + p1.y * (1 - p),
+				};
+				if (p0.z > 0) {
+					result += svgPt(cross) + 'M';
+				} else {
+					result += svgPt(cross) + 'L' + svgPt(p1) + 'L';
+				}
+			}
+		}
+		return result.substr(0, result.length - 1);
+	}
 }
 
 export function renderOnBall(pts, {radius, filled = false, closed = false, pointsAsLines = false}) {

@@ -28,6 +28,12 @@ const Dean = new Doe({
 	hairStyle: Doe.HAIR_STYLE.BALD,
 });
 
+const Eve = new Doe({
+	skin: Doe.skin({european: 0.5, african: 0.5, pale: 0.2}),
+	hair: Doe.HAIR.WHITE,
+	hairStyle: Doe.HAIR_STYLE.PARTED_BUN,
+});
+
 export default {
 	Amy,
 	Bert,
@@ -36,11 +42,13 @@ export default {
 	Clyde,
 	Dean,
 	Doe,
+	Eve,
 	Eye,
 	Halloween,
 	HalloweenAmy: new Halloween(Amy),
 	HalloweenBert: new Halloween(Bert),
 	HalloweenClyde: new Halloween(Clyde),
 	HalloweenDean: new Halloween(Dean),
+	HalloweenEve: new Halloween(Eve),
 	TestPattern,
 };

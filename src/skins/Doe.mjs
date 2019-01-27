@@ -1,4 +1,4 @@
-import {backtraced, clonePts, pts, reflectX, symmetricX} from './helpers.mjs';
+import {backtraced, pts, reflectX, symmetricX} from './helpers.mjs';
 import {blendColours} from '../core/blend.mjs';
 
 const HIDE = {
@@ -17,117 +17,154 @@ const EYE = pts([[0.3, -0.05]]);
 
 const HAIR_RAW = new Map();
 
-function addHairStyle(name, points) {
-	HAIR_RAW.set(name, points);
+function addHairStyle(name, surface, raised = [], raisedRadius = 0) {
+	HAIR_RAW.set(name, {surface, raised, raisedRadius});
 	return name;
 }
 
+const SHORT_HAIR = symmetricX([
+	[0.00, -0.09, true],
+	[0.20, -0.09, true],
+	[0.40, -0.09, true],
+	[0.60, -0.09, true],
+	[0.80, -0.09, true],
+	[0.90, -0.09, true],
+	[0.95, -0.09, true],
+	[0.97, -0.09, true],
+
+	[0.99, -0.09],
+	[0.97, -0.10],
+	[0.95, -0.12],
+	[0.93, -0.16],
+	[0.91, -0.18],
+	[0.88, -0.19],
+	[0.85, -0.18],
+	[0.82, -0.16],
+	[0.79, -0.14],
+	[0.76, -0.12],
+	[0.73, -0.11],
+	[0.70, -0.12],
+	[0.67, -0.14],
+	[0.62, -0.18],
+	[0.55, -0.23],
+	[0.48, -0.28],
+	[0.40, -0.32],
+	[0.33, -0.35],
+	[0.24, -0.38],
+	[0.14, -0.40],
+	[0.00, -0.41],
+]);
+
+const PARTED_HAIR = [
+	[ 0.00, 0.43, true],
+	[ 0.20, 0.42, true],
+	[ 0.40, 0.40, true],
+	[ 0.60, 0.38, true],
+	[ 0.80, 0.35, true],
+	[ 0.90, 0.30, true],
+	[ 0.95, 0.23, true],
+	[ 0.97, 0.20, true],
+
+	[ 0.99, 0.10],
+	[ 0.98, 0.07],
+	[ 0.96, 0.04],
+	[ 0.94, 0.01],
+	[ 0.92,-0.02],
+	[ 0.90,-0.05],
+	[ 0.87,-0.08],
+	[ 0.84,-0.11],
+	[ 0.81,-0.14],
+	[ 0.78,-0.16],
+	[ 0.75,-0.18],
+	[ 0.72,-0.20],
+	[ 0.67,-0.22],
+	[ 0.62,-0.24],
+	[ 0.56,-0.26],
+	[ 0.48,-0.28],
+	[ 0.39,-0.30],
+	[ 0.31,-0.32],
+	[ 0.25,-0.34],
+	[ 0.20,-0.36],
+	[ 0.15,-0.39],
+	[ 0.11,-0.42],
+	[ 0.08,-0.45],
+	[ 0.05,-0.50],
+	[ 0.03,-0.55],
+	[-0.06,-0.53],
+	[-0.14,-0.51],
+	[-0.28,-0.48],
+	[-0.30,-0.47],
+	[-0.39,-0.44],
+	[-0.48,-0.40],
+	[-0.55,-0.37],
+	[-0.62,-0.33],
+	[-0.68,-0.29],
+	[-0.73,-0.25],
+	[-0.78,-0.21],
+	[-0.82,-0.16],
+	[-0.86,-0.11],
+	[-0.92,-0.02],
+	[-0.94, 0.03],
+	[-0.96, 0.08],
+	[-0.99, 0.20],
+
+	[-0.97, 0.23, true],
+	[-0.95, 0.25, true],
+	[-0.90, 0.31, true],
+	[-0.80, 0.36, true],
+	[-0.60, 0.37, true],
+	[-0.40, 0.40, true],
+	[-0.20, 0.42, true],
+];
+
+const BUN = [
+	[0, -1.15, -0.3],
+];
+
+const PONYTAIL = [
+	[0, 0.50, null, -1.00],
+	[0, 0.50, null, -1.15],
+	[0, 0.49, null, -1.24],
+	[0, 0.47, null, -1.30],
+	[0, 0.43, null, -1.36],
+	[0, 0.35, null, -1.43],
+	[0, 0.30, null, -1.44],
+	[0, 0.20, null, -1.45],
+	[0, 0.10, null, -1.47],
+	[0, 0.00, null, -1.47],
+	[0,-0.10, null, -1.43],
+	[0,-0.20, null, -1.41],
+	[0,-0.30, null, -1.37],
+	[0,-0.40, null, -1.33],
+	[0,-0.44, null, -1.25],
+	[0,-0.30, null, -1.20],
+	[0,-0.20, null, -1.20],
+	[0,-0.10, null, -1.15],
+	[0, 0.00, null, -1.10],
+	[0, 0.10, null, -1.10],
+	[0, 0.20, null, -1.05],
+	[0, 0.25, null, -1.00],
+];
+
 const HAIR_STYLES = {
 	BALD: addHairStyle('bald', []),
-	SHORT: addHairStyle('short', symmetricX([
-		[0.00, -0.09, true],
-		[0.20, -0.09, true],
-		[0.40, -0.09, true],
-		[0.60, -0.09, true],
-		[0.80, -0.09, true],
-		[0.90, -0.09, true],
-		[0.95, -0.09, true],
-		[0.97, -0.09, true],
-
-		[0.99, -0.09],
-		[0.97, -0.10],
-		[0.95, -0.12],
-		[0.93, -0.16],
-		[0.91, -0.18],
-		[0.88, -0.19],
-		[0.85, -0.18],
-		[0.82, -0.16],
-		[0.79, -0.14],
-		[0.76, -0.12],
-		[0.73, -0.11],
-		[0.70, -0.12],
-		[0.67, -0.14],
-		[0.62, -0.18],
-		[0.55, -0.23],
-		[0.48, -0.28],
-		[0.40, -0.32],
-		[0.33, -0.35],
-		[0.24, -0.38],
-		[0.14, -0.40],
-		[0.00, -0.41],
-	])),
-	PARTED: addHairStyle('parted', [
-		[ 0.00, 0.43, true],
-		[ 0.20, 0.42, true],
-		[ 0.40, 0.40, true],
-		[ 0.60, 0.38, true],
-		[ 0.80, 0.35, true],
-		[ 0.90, 0.30, true],
-		[ 0.95, 0.23, true],
-		[ 0.97, 0.20, true],
-
-		[ 0.99, 0.10],
-		[ 0.98, 0.07],
-		[ 0.96, 0.04],
-		[ 0.94, 0.01],
-		[ 0.92,-0.02],
-		[ 0.90,-0.05],
-		[ 0.87,-0.08],
-		[ 0.84,-0.11],
-		[ 0.81,-0.14],
-		[ 0.78,-0.16],
-		[ 0.75,-0.18],
-		[ 0.72,-0.20],
-		[ 0.67,-0.22],
-		[ 0.62,-0.24],
-		[ 0.56,-0.26],
-		[ 0.48,-0.28],
-		[ 0.39,-0.30],
-		[ 0.31,-0.32],
-		[ 0.25,-0.34],
-		[ 0.20,-0.36],
-		[ 0.15,-0.39],
-		[ 0.11,-0.42],
-		[ 0.08,-0.45],
-		[ 0.05,-0.50],
-		[ 0.03,-0.55],
-		[-0.06,-0.53],
-		[-0.14,-0.51],
-		[-0.28,-0.48],
-		[-0.30,-0.47],
-		[-0.39,-0.44],
-		[-0.48,-0.40],
-		[-0.55,-0.37],
-		[-0.62,-0.33],
-		[-0.68,-0.29],
-		[-0.73,-0.25],
-		[-0.78,-0.21],
-		[-0.82,-0.16],
-		[-0.86,-0.11],
-		[-0.92,-0.02],
-		[-0.94, 0.03],
-		[-0.96, 0.08],
-		[-0.99, 0.20],
-
-		[-0.97, 0.23, true],
-		[-0.95, 0.25, true],
-		[-0.90, 0.31, true],
-		[-0.80, 0.36, true],
-		[-0.60, 0.37, true],
-		[-0.40, 0.40, true],
-		[-0.20, 0.42, true],
-	]),
+	PARTED: addHairStyle('parted', PARTED_HAIR),
+	PARTED_BUN: addHairStyle('parted_bun', PARTED_HAIR, BUN, 18),
+	PARTED_PONYTAIL: addHairStyle('parted_ponytail', PARTED_HAIR, PONYTAIL, 18),
+	SHORT: addHairStyle('short', SHORT_HAIR),
+	SHORT_BUN: addHairStyle('short_bun', SHORT_HAIR, BUN, 18),
+	SHORT_PONYTAIL: addHairStyle('short_ponytail', SHORT_HAIR, PONYTAIL, 18),
 };
 
-function hairPointsRaw(style = null) {
+function hairData(style = null) {
 	if (style === null) {
-		return [];
+		return HAIR_RAW.get('bald');
 	}
-	const points = HAIR_RAW.get(style);
-	if (!points) {
+	const data = HAIR_RAW.get(style);
+	if (!data) {
 		throw new Error('Unknown hair style: ' + style);
 	}
-	return clonePts(points);
+	return data;
 }
 
 export const MOUTH_NORMAL = symmetricX(backtraced(pts([
@@ -211,7 +248,7 @@ const makeFace = ({skin, hair, hairStyle}) => ({
 			},
 			backRendering: false,
 			closed: true,
-			points: pts(hairPointsRaw(hairStyle)),
+			points: pts(hairData(hairStyle).surface),
 		},
 		'left-eye': {
 			style: EYE_STYLE,
@@ -240,6 +277,32 @@ const makeFace = ({skin, hair, hairStyle}) => ({
 			},
 			closed: true,
 			points: MOUTH_NORMAL,
+		},
+		'raised-hair-back': {
+			style: {
+				'stroke': fillFrom(hair),
+				'stroke-width': hairData(hairStyle).raisedRadius - 2.2,
+			},
+			flat: false,
+			frontRendering: false,
+			points: pts(hairData(hairStyle).raised),
+		},
+		'raised-hair-outline': {
+			style: {
+				'stroke': strokeFrom(hair, 0.6),
+				'stroke-width': hairData(hairStyle).raisedRadius + 2.2,
+			},
+			flat: false,
+			points: pts(hairData(hairStyle).raised),
+		},
+		'raised-hair-front': {
+			style: {
+				'stroke': fillFrom(hair),
+				'stroke-width': hairData(hairStyle).raisedRadius - 2.2,
+			},
+			flat: false,
+			backRendering: false,
+			points: pts(hairData(hairStyle).raised),
 		},
 	},
 	mutualExpressions: [

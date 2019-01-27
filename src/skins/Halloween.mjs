@@ -29,6 +29,14 @@ function shift(v, origin) {
 	});
 }
 
+function flattenToSphere(v, mult) {
+	return v.map(clonePt).map((pt) => {
+		const dist = Math.sqrt(pt.x * pt.x + pt.y * pt.y + pt.z * pt.z);
+		pt.d = (dist - 1) * mult + 1;
+		return pt;
+	});
+}
+
 const EYE_SHADOW = [
 	{x: 0.05, y: -0.09, z: 0, d: 1},
 	{x:-0.05, y: -0.07, z: 0, d: 1},
@@ -77,12 +85,20 @@ const hairColBlending = 0.5;
 const baseSkinCol = blendColours('#FDE8AA', '#CADDA2', 1 / skinColBlending);
 const baseHairCol = blendColours('#C69F45', '#B39C65', 1 / hairColBlending);
 
+const BLANK_COMPONENT = {
+	style: {'fill': 'none'},
+	points: [],
+};
+
 export default function(base) {
 	const result = deepClone(base);
 	const {ball, components, expressions} = result;
 
 	const {
-		hair,
+		hair = BLANK_COMPONENT,
+		'raised-hair-back': raisedHairBack = BLANK_COMPONENT,
+		'raised-hair-outline': raisedHairOutline = BLANK_COMPONENT,
+		'raised-hair-front': raisedHairFront = BLANK_COMPONENT,
 		'left-eye': leftEye,
 		'right-eye': rightEye,
 		nose,
@@ -96,13 +112,27 @@ export default function(base) {
 	const mouthCol = '#77100E';
 	const scarOutlineCol = '#D5CA90';
 	const scarCol = '#C99B72';
+	const skinOutlineCol = blendColours('#000000', skinCol, 0.4);
+	const hairOutlineCol = blendColours('#000000', hairCol, 0.7);
 
 	ball.style['fill'] = skinCol;
-	ball.style['stroke'] = blendColours('#000000', skinCol, 0.4);
+	ball.style['stroke'] = skinOutlineCol;
 
 	hair.style['fill'] = hairCol;
-	hair.style['stroke'] = blendColours('#000000', hairCol, 0.7);
+	hair.style['stroke'] = hairOutlineCol;
 	hair.points = pts(roughY(hair.points));
+
+	raisedHairBack.style['stroke'] = hairCol;
+	raisedHairOutline.style['stroke'] = hairOutlineCol;
+	raisedHairFront.style['stroke'] = hairCol;
+
+	const raisedHairPoints = pts(flattenToSphere(raisedHairFront.points, 0.6));
+	raisedHairBack.points = raisedHairPoints;
+	raisedHairOutline.points = raisedHairPoints;
+	raisedHairFront.points = raisedHairPoints;
+	raisedHairBack.style['stroke-width'] -= 4;
+	raisedHairOutline.style['stroke-width'] -= 4;
+	raisedHairFront.style['stroke-width'] -= 4;
 
 	nose.points = pts([
 		[0.0, 0.2, null, 1.0],
@@ -182,6 +212,9 @@ export default function(base) {
 		'right-eye': rightEye,
 		nose,
 		mouth,
+		'raised-hair-back': raisedHairBack,
+		'raised-hair-outline': raisedHairOutline,
+		'raised-hair-front': raisedHairFront,
 		...otherComponents,
 	};
 
