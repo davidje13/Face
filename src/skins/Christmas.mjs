@@ -105,6 +105,46 @@ const MOUSTACHE_SHOCK = pts([
 	[0.06, 0.55],
 ]);
 
+const hat = {
+	brim: {
+		y: -0.6,
+	},
+	sides: {
+		style: {
+			'stroke': '#560F06',
+			'stroke-width': 3,
+			'fill': '#EF3A22',
+		},
+	},
+	top: {
+		y: -1.9,
+		radius: 0,
+	},
+};
+
+function makeRing(y, rad, count) {
+	const ring = [];
+	for (let i = 0; i < count; ++ i) {
+		const theta = i * Math.PI * 2 / count;
+		ring.push([Math.cos(theta) * rad, y, Math.sin(theta) * rad]);
+	}
+	return ring;
+}
+
+const NS = 'http://www.w3.org/2000/svg';
+
+function makeFluffBlob(symbol, dom) {
+	const path = dom.el('circle', NS).attrs({
+		'stroke': '#DDDDDD',
+		'stroke-width': 1,
+		'fill': '#FFFFFF',
+		'cx': '0',
+		'cy': '0',
+		'r': '5',
+	});
+	symbol.add(path);
+}
+
 export default {
 	ball: {
 		style: {
@@ -112,22 +152,7 @@ export default {
 		},
 	},
 	liftAngle: Math.PI * 0.1,
-	hat: {
-		brim: {
-			y: -0.6,
-		},
-		sides: {
-			style: {
-				'stroke': '#560F06',
-				'stroke-width': 3,
-				'fill': '#EF3A22',
-			},
-		},
-		top: {
-			y: -1.9,
-			radius: 0,
-		},
-	},
+	hat,
 	components: {
 		'left-eye': {
 			style: EYE_STYLE,
@@ -251,6 +276,17 @@ export default {
 				[0.0, 0.2, null, 1.0],
 				[0.0, 0.4, null, 1.15],
 				[0.0, 0.5, null, 1.0],
+			]),
+		},
+		'fluff': {
+			blob: makeFluffBlob,
+			points: pts([
+				...makeRing(
+					hat.brim.y,
+					Math.sqrt(1 - hat.brim.y * hat.brim.y) * 1.1,
+					20
+				),
+				[0, hat.top.y, 0],
 			]),
 		},
 	},

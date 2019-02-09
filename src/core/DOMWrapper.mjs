@@ -54,8 +54,12 @@ class WrappedElement {
 		return this;
 	}
 
-	attr(key, value) {
-		this.element.setAttribute(key, value);
+	attr(key, value, namespace = null) {
+		if (namespace === null) {
+			this.element.setAttribute(key, value);
+		} else {
+			this.element.setAttributeNS(namespace, key, value);
+		}
 		return this;
 	}
 

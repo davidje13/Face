@@ -71,7 +71,12 @@ function blendPoints(target, all) {
 	}
 }
 
+function copyPoint({x, y, z}) {
+	return {x, y, z};
+}
+
 const NS = 'http://www.w3.org/2000/svg';
+const XLNS = 'http://www.w3.org/1999/xlink';
 
 function buildComponents(dom, root, components, minBackStroke) {
 	const result = new Map();
@@ -79,20 +84,42 @@ function buildComponents(dom, root, components, minBackStroke) {
 		if (!has(components, part)) {
 			continue;
 		}
-		const info = Object.assign({
-			backRendering: (
-				Boolean(components[part].styleBack) ||
-				(components[part].flat === false) ||
-				Number(components[part].style['stroke-width']) > minBackStroke
-			),
-			frontRendering: true,
-		}, components[part]);
-		const points = info.points.map(({x, y, z}) => ({x, y, z})); // Make copy
-		const elBack = dom.el('path', NS).attr('fill-rule', 'evenodd');
-		const elFront = dom.el('path', NS).attr('fill-rule', 'evenodd');
-		result.set(part, {elBack, elFront, info, points});
-		root.unshift(elBack);
-		root.add(elFront);
+		const component = components[part];
+		const isBlob = Boolean(component.blob);
+		const defaultBackRendering = (
+			Boolean(component.styleBack) ||
+			isBlob ||
+			(component.flat === false) ||
+			Number((component.style || {})['stroke-width']) > minBackStroke
+		);
+		const details = {
+			info: Object.assign({
+				backRendering: defaultBackRendering,
+				frontRendering: true,
+				isBlob,
+			}, component),
+			points: component.points.map(copyPoint),
+		};
+		if (isBlob) {
+			const blobID = 'face-blob-' + part;
+			details.elBack = dom.el('g', NS);
+			details.elFront = dom.el('g', NS);
+			details.blobs = component.points.map(() => dom.el('use', NS)
+				.attr('href', '#' + blobID, XLNS)
+			);
+			const symbol = dom.el('symbol', NS).attrs({
+				'id': blobID,
+				'overflow': 'visible',
+			});
+			component.blob(symbol, dom);
+			root.add(symbol);
+		} else {
+			details.elBack = dom.el('path', NS).attr('fill-rule', 'evenodd');
+			details.elFront = dom.el('path', NS).attr('fill-rule', 'evenodd');
+		}
+		result.set(part, details);
+		root.unshift(details.elBack);
+		root.add(details.elFront);
 	}
 	return result;
 }
@@ -210,6 +237,7 @@ export default class Face {
 			'viewBox': `${fxLeft} ${fxTop} ${fxBounds} ${fxBounds}`,
 			'width': fxSize,
 			'xmlns': NS,
+			'xmlns:xlink': XLNS,
 		});
 		this.ball = this.dom.el('circle', NS).attrs({
 			'cx': '0',
@@ -387,11 +415,29 @@ export default class Face {
 		if (this.hatInfo) {
 			renderHat(this.hatInfo, this.mat, this.radius, this.hatEl);
 		}
-		for (const [, {info, points, elFront, elBack}] of this.components.entries()) {
+		for (const [, {info, points, elFront, elBack, blobs}] of this.components.entries()) {
 			if (!points.length) {
 				continue;
 			}
 			const viewPoints = points.map((p) => applyMat(p, this.mat));
+			if (info.isBlob) {
+				elFront.empty();
+				elBack.empty();
+				viewPoints.sort((a, b) => (a.z - b.z));
+				for (let i = 0; i < viewPoints.length; ++ i) {
+					const pt = viewPoints[i];
+					const el = blobs[i];
+					el.attrs({'x': pt.x, 'y': pt.y});
+					if (pt.z < 0) {
+						if (info.backRendering) {
+							elBack.add(el);
+						}
+					} else if(info.frontRendering) {
+						elFront.add(el);
+					}
+				}
+				continue;
+			}
 			const opts = {
 				closed: info.closed,
 				filled: info.frontFilled,

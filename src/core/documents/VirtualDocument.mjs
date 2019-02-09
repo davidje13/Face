@@ -63,6 +63,10 @@ class ElementNode {
 	}
 
 	setAttribute(key, value) {
+		this.setAttributeNS(null, key, value);
+	}
+
+	setAttributeNS(namespace, key, value) {
 		let v = null;
 		if (typeof value === 'number') {
 			v = value.toString(10);
@@ -71,11 +75,11 @@ class ElementNode {
 		} else {
 			throw new Error('Bad value ' + value + ' for attribute ' + key);
 		}
-		this.attributes.set(key, v);
+		this.attributes.set(key, {value: v, namespace});
 	}
 
 	getAttribute(key) {
-		return this.attributes.get(key);
+		return (this.attributes.get(key) || {}).value;
 	}
 
 	addEventListener(event, fn) {
@@ -224,8 +228,12 @@ class ElementNode {
 
 	get outerHTML() {
 		let attrs = '';
-		for (const [key, value] of this.attributes) {
-			attrs += ' ' + key + '="' + escapeQuoted(value) + '"';
+		for (const [key, {value, namespace}] of this.attributes) {
+			let prefix = '';
+			if (namespace !== null) {
+				prefix = namespace.substr(namespace.lastIndexOf('/') + 1) + ':';
+			}
+			attrs += ' ' + prefix + key + '="' + escapeQuoted(value) + '"';
 		}
 		return (
 			'<' + this.tagName + attrs + '>' +
