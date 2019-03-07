@@ -21,16 +21,29 @@ function pickExpression(distance) {
 	}
 }
 
-window.addEventListener('mousemove', (e) => {
+let lastClientX = 0;
+let lastClientY = 0;
+
+function updateGaze() {
+	const pageX = lastClientX + window.scrollX;
+	const pageY = lastClientY + window.scrollY;
 	for (const face of follow) {
 		const pos = face.getPagePosition();
-		const dx = e.pageX - pos.x;
-		const dy = e.pageY - pos.y;
+		const dx = pageX - pos.x;
+		const dy = pageY - pos.y;
 		face.look(dx, dy, 300);
 		face.setExpression(pickExpression(Math.sqrt(dx * dx + dy * dy)));
 		face.render();
 	}
+}
+
+window.addEventListener('mousemove', (e) => {
+	lastClientX = e.clientX;
+	lastClientY = e.clientY;
+	updateGaze();
 });
+
+window.addEventListener('scroll', updateGaze, {passive: true});
 
 // Test patterns
 
