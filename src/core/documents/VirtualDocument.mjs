@@ -5,14 +5,14 @@ function encodeChar(c) {
 function escapeHTML(text) {
 	return text.replace(
 		/[\uD800-\uDBFF][\uDC00-\uDFFF]|[^\r\n\t -%'-;=?-~]/g,
-		encodeChar
+		encodeChar,
 	);
 }
 
 function escapeQuoted(text) {
 	return text.replace(
 		/[\uD800-\uDBFF][\uDC00-\uDFFF]|[^\r\n\t !#$%'-;=?-~]/g,
-		encodeChar
+		encodeChar,
 	);
 }
 
@@ -75,7 +75,7 @@ class ElementNode {
 		} else {
 			throw new Error('Bad value ' + value + ' for attribute ' + key);
 		}
-		this.attributes.set(key, {value: v, namespace});
+		this.attributes.set(key, {namespace, value: v});
 	}
 
 	getAttribute(key) {

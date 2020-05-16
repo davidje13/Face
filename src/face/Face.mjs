@@ -1,5 +1,10 @@
 import {buildHat, renderHat} from './svgHatRendering.mjs';
-import {fxShort, renderLines, renderLinesHemi, renderOnBall} from './svgBallRendering.mjs';
+import {
+	fxShort,
+	renderLines,
+	renderLinesHemi,
+	renderOnBall,
+} from './svgBallRendering.mjs';
 import DOMWrapper from '../core/DOMWrapper.mjs';
 import {VirtualDocument} from '../core/documents/VirtualDocument.mjs';
 
@@ -51,6 +56,7 @@ function blendedParts(blending, base, extractor) {
 }
 
 function blendStyles(all) {
+	/* eslint-disable-next-line no-warning-comments */
 	// TODO: per-component blending
 	return Object.assign({
 		'fill': 'none',
@@ -105,8 +111,7 @@ function buildComponents(dom, root, components, minBackStroke) {
 			details.elBack = dom.el('g', NS);
 			details.elFront = dom.el('g', NS);
 			details.blobs = component.points.map(() => dom.el('use', NS)
-				.attr('href', '#' + blobID, XLNS)
-			);
+				.attr('href', '#' + blobID, XLNS));
 			const symbol = dom.el('symbol', NS).attrs({
 				'id': blobID,
 				'overflow': 'visible',
@@ -149,7 +154,7 @@ function readExpressions(expressions, baseComponents) {
 			if (points && points.length !== base.points.length) {
 				throw new Error(
 					`part "${part}" points mismatch in "${name}"` +
-					` (${points.length} != ${base.points.length})`
+					` (${points.length} != ${base.points.length})`,
 				);
 			}
 		}
@@ -198,13 +203,14 @@ export default class Face {
 		pointsAsLines = false,
 		render = true,
 	}) {
+		let resolvedSkin = skin;
 		if (typeof skin === 'string') {
-			skin = Face.skins[skin];
-			if (!skin) {
+			resolvedSkin = Face.skins[skin];
+			if (!resolvedSkin) {
 				throw new Error('Unknown skin: ' + skin);
 			}
 		}
-		if (typeof skin !== 'object') {
+		if (typeof resolvedSkin !== 'object') {
 			throw new Error('Invalid skin');
 		}
 		const {
@@ -213,7 +219,7 @@ export default class Face {
 			hat = null,
 			components = {},
 			expressions = {},
-		} = skin;
+		} = resolvedSkin;
 
 		this.dom = new DOMWrapper(pickDocument(document, container));
 		this.ballInfo = ball;
@@ -247,12 +253,21 @@ export default class Face {
 		this.root.add(this.ball);
 
 		const minBackStroke = Number(ball.style['stroke-width']) || 0;
-		this.components = buildComponents(this.dom, this.root, components, minBackStroke);
+		this.components = buildComponents(
+			this.dom,
+			this.root,
+			components,
+			minBackStroke,
+		);
 		this.expressionInfo = readExpressions(expressions, this.components);
 
 		if (hat) {
 			this.hatInfo = {
-				brim: Object.assign({innerRadius: 0, outerRadius: 0, style: {}}, hat.brim),
+				brim: Object.assign({
+					innerRadius: 0,
+					outerRadius: 0,
+					style: {},
+				}, hat.brim),
 				sides: Object.assign({style: {}}, hat.sides),
 				top: Object.assign({radius: 0, style: {}}, hat.top),
 			};
@@ -348,8 +363,10 @@ export default class Face {
 		this.setExpressions({[name]: 1});
 	}
 
-	setRotation(x, y) {
-		if (typeof x === 'object') {
+	setRotation(rawX, rawY) {
+		let x = rawX;
+		let y = rawY;
+		if (typeof rawX === 'object') {
 			y = x.y;
 			x = x.x;
 		}
@@ -371,13 +388,13 @@ export default class Face {
 		this.ball.attrs(blendStyles(blendedParts(
 			this.expression,
 			this.ballInfo.style || {},
-			(name) => this.expressionInfo.get(name).ball.style
+			(name) => this.expressionInfo.get(name).ball.style,
 		)));
 		for (const [part, {info, points, elFront, elBack}] of this.components.entries()) {
 			const frontAttrs = blendStyles(blendedParts(
 				this.expression,
 				info.style,
-				(name) => (this.expressionInfo.get(name).components[part] || {}).style
+				(name) => (this.expressionInfo.get(name).components[part] || {}).style,
 			));
 			elFront.attrs(frontAttrs);
 
@@ -392,14 +409,14 @@ export default class Face {
 				(name) => {
 					const base = this.expressionInfo.get(name).components[part] || {};
 					return base.styleBack || base.style;
-				}
+				},
 			));
 			elBack.attrs(backAttrs);
 
 			blendPoints(points, blendedParts(
 				this.expression,
 				info.points,
-				(name) => (this.expressionInfo.get(name).components[part] || {}).points
+				(name) => (this.expressionInfo.get(name).components[part] || {}).points,
 			));
 
 			info.frontFilled = frontAttrs['fill'] !== 'none';
@@ -432,7 +449,7 @@ export default class Face {
 						if (info.backRendering) {
 							elBack.add(el);
 						}
-					} else if(info.frontRendering) {
+					} else if (info.frontRendering) {
 						elFront.add(el);
 					}
 				}
@@ -501,19 +518,19 @@ function readNumber(v, def) {
 function parseTagOptions(element) {
 	const ds = element.dataset;
 	return {
-		skin: ds.faceSkin || 'Clyde',
-		radius: readNumber(ds.faceRadius),
+		expressions: {[ds.faceExpression]: 1},
 		padding: readNumber(ds.facePadding),
-		shift: {
-			x: readNumber(ds.faceShiftX, 0),
-			y: readNumber(ds.faceShiftY, 0),
-		},
-		zoom: readNumber(ds.faceZoom),
+		radius: readNumber(ds.faceRadius),
 		rotation: {
 			x: readNumber(ds.faceRotateX, 0) * Math.PI / 180,
 			y: readNumber(ds.faceRotateY, 0) * Math.PI / 180,
 		},
-		expressions: {[ds.faceExpression]: 1},
+		shift: {
+			x: readNumber(ds.faceShiftX, 0),
+			y: readNumber(ds.faceShiftY, 0),
+		},
+		skin: ds.faceSkin || 'Clyde',
+		zoom: readNumber(ds.faceZoom),
 	};
 }
 
@@ -532,7 +549,7 @@ function convertOne(element, options = {}) {
 	for (let i = 0; i < attrs.length; ++ i) {
 		newElement.setAttribute(
 			attrs[i].nodeName,
-			attrs[i].nodeValue
+			attrs[i].nodeValue,
 		);
 	}
 	element.parentNode.replaceChild(newElement, element);

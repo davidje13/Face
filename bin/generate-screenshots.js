@@ -45,7 +45,7 @@ function renderSample({file, options, size}) {
 		.then(() => process.stdout.write(file + ' complete\n'))
 		.catch((err) => process.stderr.write(
 			'Failed to generate ' + file + ': ' +
-			processError(err) + '\n'
+			processError(err) + '\n',
 		));
 }
 

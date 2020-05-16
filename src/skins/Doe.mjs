@@ -364,7 +364,7 @@ Doe.skin = function({
 	return blendColours(
 		blendColours(NORTH_EUROPEAN_DARK, NORTH_EUROPEAN_PALE, pale),
 		blendColours(WEST_AFRICAN_DARK, WEST_AFRICAN_PALE, pale),
-		african / (european + african)
+		african / (european + african),
 	);
 };
 

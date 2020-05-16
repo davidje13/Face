@@ -48,11 +48,12 @@ function ellipsePoints(centre, ellipseAngle, r1, r2, angles) {
 	});
 }
 
-function svgEllipseSegment(centre, angle, r1, r2, beginAngle, endAngle, cw) {
-	const [p1, p2] = ellipsePoints(centre, angle, r1, r2, [beginAngle, endAngle]);
+function svgEllipseSegment(centre, angle, r1, r2, beginAngle, rawEndAngle, cw) {
+	const [p1, p2] = ellipsePoints(centre, angle, r1, r2, [beginAngle, rawEndAngle]);
 	if (Math.abs(r1) < 0.1 || Math.abs(r2) < 0.1) {
 		return `${svgPt(p1)}L${svgPt(p2)}`;
 	}
+	let endAngle = rawEndAngle;
 	if (cw) {
 		endAngle = beginAngle + posMod(endAngle - beginAngle, Pi * 2);
 	} else {
@@ -60,9 +61,9 @@ function svgEllipseSegment(centre, angle, r1, r2, beginAngle, endAngle, cw) {
 	}
 	const large = Math.abs(endAngle - beginAngle) > Pi;
 	const angleDeg = fx(angle * 180 / Pi);
-	cw ^= (r1 < 0) ^ (r2 < 0);
+	const isCw = cw ^ (r1 < 0) ^ (r2 < 0);
 
-	return `${svgPt(p1)}A${fx(r1)} ${fx(r2)} ${angleDeg} ${large ? '1' : '0'} ${cw ? '1' : '0'} ${svgPt(p2)}`;
+	return `${svgPt(p1)}A${fx(r1)} ${fx(r2)} ${angleDeg} ${large ? '1' : '0'} ${isCw ? '1' : '0'} ${svgPt(p2)}`;
 }
 
 function svgEllipse(centre, angle, r1, r2) {
@@ -86,7 +87,7 @@ export function renderHat(
 		elBrimFrontOutline,
 		elSides,
 		elTop,
-	}
+	},
 ) {
 	const dir = applyMat({x: 0, y: 1 / radius, z: 0}, mat);
 	const pB = applyMat({x: 0, y: brim.y, z: 0}, mat); // =dir * brim.y * radius
@@ -126,7 +127,13 @@ export function renderHat(
 			const dBack2 = svgEllipseSegment(pB, angle, r2a, r2b, angle2, angle1, true);
 			const dFront1 = svgEllipseSegment(pB, angle, r3a, r3b, angle2, angle1 + Pi * 2, false);
 			const dFront2 = svgEllipseSegment(pB, angle, r2a, r2b, angle1, angle2 + Pi * 2, true);
-			const [seamlessA, seamlessB] = ellipsePoints(pB, angle, (r2a + r3a) / 2, (r2b + r3b) / 2, [angle1 + seamlessOverlap, angle2 - seamlessOverlap]);
+			const [seamlessA, seamlessB] = ellipsePoints(
+				pB,
+				angle,
+				(r2a + r3a) / 2,
+				(r2b + r3b) / 2,
+				[angle1 + seamlessOverlap, angle2 - seamlessOverlap],
+			);
 			elBrimBackOutline.attr('d', `M${dBack1}M${dBack2}`);
 			elBrimFrontOutline.attr('d', `M${dFront1}M${dFront2}`);
 			elBrimBackFill.attr('d', `M${dBack1}L${svgPt(seamlessB)}L${dBack2}L${svgPt(seamlessA)}Z`);
@@ -134,7 +141,7 @@ export function renderHat(
 		}
 	}
 
-	let sideD;
+	let sideD = '';
 	const coneAngleS = (brim.innerRadius - top.radius) * (dir.z / dirXY) / (top.y - brim.y);
 	if (coneAngleS <= -1.0) {
 		sideD = '';

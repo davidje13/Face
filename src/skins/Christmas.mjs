@@ -284,7 +284,7 @@ export default {
 				...makeRing(
 					hat.brim.y,
 					Math.sqrt(1 - hat.brim.y * hat.brim.y) * 1.1,
-					20
+					20,
 				),
 				[0, hat.top.y, 0],
 			]),

@@ -31,7 +31,7 @@ function readCol(css) {
 	if (css.startsWith('rgb')) {
 		const inner = css.substring(
 			css.indexOf('(') + 1,
-			css.lastIndexOf(')')
+			css.lastIndexOf(')'),
 		);
 		const raw = inner.split(',').map((v) => Number.parseInt(v, 10));
 		return {

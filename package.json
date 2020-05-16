@@ -25,7 +25,7 @@
     "lib"
   ],
   "scripts": {
-    "lint": "eslint . --config eslintrc.js --ext .js --ext .mjs",
+    "lint": "eslint . --config eslintrc.js",
     "generate-screenshots": "bin/generate-screenshots.js",
     "minify": "rollup --config src/rollup.config.js && uglifyjs --compress --mangle --warn --output lib/face.min.js -- lib/face.js",
     "prepublishOnly": "npm run minify && npm run generate-screenshots",
@@ -33,16 +33,16 @@
     "test": "npm run lint && echo 'PASSED :)'"
   },
   "devDependencies": {
-    "buffer-to-stream": "^1.0.0",
-    "eslint": "^5.12.0",
-    "http-server": "^0.11.1",
-    "pngcrush": "^2.0.0",
-    "rollup": "^1.1.0",
-    "source-map-support": "^0.5.10",
-    "svg2png": "^4.1.1",
-    "uglify-es": "^3.3.9"
+    "buffer-to-stream": "1.x",
+    "eslint": "7.x",
+    "http-server": "0.x",
+    "pngcrush": "2.x",
+    "rollup": "1.x",
+    "source-map-support": "0.x",
+    "svg2png": "4.x",
+    "uglify-es": "3.x"
   },
   "dependencies": {
-    "argparse": "^1.0.10"
+    "argparse": "1.x"
   }
 }
